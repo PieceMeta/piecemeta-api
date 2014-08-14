@@ -1,0 +1,12 @@
+{
+  "name": "piecemeta-api",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node ./app"
+  },
+  "dependencies": {
+    "mongoose": "^3.8.14",
+    "restify": "^2.8.2"
+  }
+}
