@@ -16,6 +16,7 @@ var mongoose = require('mongoose'),
 });
 
 DataSequenceModel.pre('save', function (next) {
+    'use strict';
     var now = Date.now();
     this.updated_at = now;
     if (!this.created_at) {

@@ -1,5 +1,5 @@
 module.exports.list = function (req, res, next) {
-    res.set('Content-Type', 'application/json');
+    'use strict';
     var mongoose = require('mongoose');
     mongoose.model('DataSequenceModel').find({}, function (err, data) {
         if (err) {
@@ -13,7 +13,7 @@ module.exports.list = function (req, res, next) {
 };
 
 module.exports.get = function (req, res, next) {
-    res.set('Content-Type', 'application/json');
+    'use strict';
     var mongoose = require('mongoose');
     mongoose.model('DataSequenceModel').findById(req.params.id, function (err, data) {
         if (err) {
@@ -25,14 +25,15 @@ module.exports.get = function (req, res, next) {
             }
             return next();
         }
-        res.send(200, { data_sequence: data });
+        res.send(200, data);
         next();
     });
 };
 
 module.exports.post = function (req, res, next) {
+    'use strict';
     var mongoose = require('mongoose');
-    mongoose.model('DataSequenceModel').create(req.params.data_sequence, function (err, data) {
+    mongoose.model('DataSequenceModel').create(req.params, function (err, data) {
         if (err) {
             if (err.name && err.name === 'CastError') {
                 res.send(403);
@@ -42,7 +43,7 @@ module.exports.post = function (req, res, next) {
             }
             return next();
         }
-        res.send(200, { data_sequence: data });
+        res.send(200, data);
         next();
     });
 };
