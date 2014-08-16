@@ -19,6 +19,15 @@
 
         });
 
+    if (typeof UserModel.options.toJSON === 'undefined') {
+        UserModel.options.toJSON = {};
+    }
+
+    UserModel.options.toJSON.transform = function (doc, ret, options) {
+        ret.id = ret._id.toString();
+        delete ret._id;
+    };
+
     UserModel.pre('save', function (next) {
         var now = Date.now();
         this.updated_at = now;
@@ -61,6 +70,17 @@
     UserModel.statics.encryptPassword = function (password, salt) {
         var crypto = require('crypto');
         return crypto.createHash('sha512').update(password + salt).digest('hex');
+    };
+
+    UserModel.methods.filterInstance = function () {
+        return {
+            id: this._id.toString(),
+            name: this.name,
+            email: this.email,
+            api_key: this.api_key,
+            api_secret: this.api_secret,
+            last_login: this.last_login
+        };
     };
 
     UserModel.methods.confirmUser = function (callback) {

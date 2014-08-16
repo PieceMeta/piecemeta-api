@@ -4,13 +4,15 @@
     var restify = require('restify'),
         preflightEnabler = require('se7ensky-restify-preflight'),
         mongoose = require('mongoose'),
+        Settings = require('settings'),
+        sysConfig = new Settings(require('./config')),
         users = require('./resources/users'),
         sessions = require('./resources/sessions'),
         dataSequences = require('./resources/data-sequences');
 
     // Database
 
-    mongoose.connect('mongodb://127.0.0.1:27017/piecemeta-api');
+    mongoose.connect('mongodb://' + sysConfig.mongodb.host + ':' + sysConfig.mongodb.port + '/' + sysConfig.mongodb.database);
     mongoose.model('DataSequenceModel', require('./models/data-sequence').DataSequenceModel);
     mongoose.model('UserModel', require('./models/user').UserModel);
 
@@ -89,7 +91,7 @@
 
     // Start server
 
-    server.listen(8080, function () {
+    server.listen(sysConfig.http_port, function () {
         console.log('%s listening at %s', server.name, server.url);
     });
 }());

@@ -1,0 +1,11 @@
+Hello,
+
+Please confirm your email address by visiting this address:
+
+!CONFIRM_URL!
+
+Thanks!
+
+--
+
+http://www.piecemeta.com
