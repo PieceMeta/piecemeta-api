@@ -7,6 +7,9 @@
   },
   "dependencies": {
     "mongoose": "^3.8.14",
-    "restify": "^2.8.2"
+    "restify": "^2.8.2",
+    "se7ensky-restify-preflight": "^0.1.7",
+    "secure-random": "~1.0.0",
+    "sha1": "~1.1.0"
   }
 }
