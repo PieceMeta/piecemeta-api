@@ -16,11 +16,6 @@ module.exports = {
                 user: '',
                 pass: ''
             }
-        },
-        mongodb: {
-            host: 'localhost',
-            port: '27017',
-            database: 'piecemeta-api'
         }
     },
     development: {
@@ -28,6 +23,13 @@ module.exports = {
             host: 'localhost',
             port: '27017',
             database: 'piecemeta-api-dev'
+        }
+    },
+    production: {
+        mongodb: {
+            host: 'localhost',
+            port: '27017',
+            database: 'piecemeta-api'
         }
     }
 };
