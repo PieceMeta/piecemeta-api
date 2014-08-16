@@ -78,7 +78,7 @@ module.exports.post = function (req, res, next) {
                 template: 'confirm_email',
                 lang: 'en',
                 substitutions: [
-                    { key: '!CONFIRM_URL!', value: 'https://www.piecemeta.com/confirm/' + user.single_access_token }
+                    { key: '!CONFIRM_URL!', value: 'http://www.piecemeta.com/#/confirm/' + user.single_access_token }
                 ]
             }, function (err, response) {
                 if (err) {
