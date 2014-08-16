@@ -69,7 +69,7 @@ module.exports.post = function (req, res, next) {
                 } else {
                     res.send(new restify.InternalError());
                 }
-                return next(err);
+                return next();
             }
             var mailer = require('../lib/mailer');
             mailer.sendMail({
@@ -87,5 +87,46 @@ module.exports.post = function (req, res, next) {
                 res.send(200, user);
                 next(err);
             });
+        });
+};
+
+module.exports.put = function (req, res, next) {
+    'use strict';
+    var mongoose = require('mongoose'),
+        restify = require('restify'),
+        user_id = req.params.id;
+
+    if (typeof req.params !== 'object') {
+        res.send(new restify.InvalidArgumentError());
+        return next();
+    }
+
+    if (!req.user || (user_id !== 'me' && req.user.id !== user_id)) {
+        res.send(new restify.NotAuthorizedError());
+        return next();
+    }
+
+    if (user_id === 'me') {
+        user_id = req.user.id;
+    }
+
+    // TODO: this hack needs to go!
+    if (req.params.password) {
+        req.params.password = mongoose.model('UserModel').encryptPassword(req.params.password, req.user.password_salt);
+    }
+
+    mongoose.model('UserModel')
+        .findByIdAndUpdate(user_id, req.params, function (err, user) {
+            if (err) {
+                console.log(err);
+                if (err.name === 'ValidationError') {
+                    res.send(new restify.InvalidArgumentError(JSON.stringify(err.errors)));
+                } else {
+                    res.send(new restify.InternalError());
+                }
+                return next();
+            }
+            res.send(200, user);
+            next(err);
         });
 };

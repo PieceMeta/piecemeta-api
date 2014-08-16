@@ -76,6 +76,7 @@
 
     server.get('/users', users.list);
     server.get('/users/:id', users.get);
+    server.put('/users/:id', users.put);
     server.post('/users', users.post);
 
     //  Sessions

@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "mongoose": "^3.8.14",
+    "mongoose-unique-validator": "^0.3.0",
     "nodemailer": "^1.1.1",
     "restify": "^2.8.2",
     "se7ensky-restify-preflight": "^0.1.7",

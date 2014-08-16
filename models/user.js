@@ -2,10 +2,11 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
+        uniqueValidator = require('mongoose-unique-validator'),
         UserModel = Schema({
 
             name: { type: String, required: true },
-            email: { type: String, required: true },
+            email: { type: String, index: true, unique: true, required: true },
             password: { type: String, required: true },
             password_salt: String,
             confirmed: { type: Boolean, required: true, default: false },
@@ -14,10 +15,12 @@
             updated_at: Date,
             last_login: Date,
             single_access_token: String,
-            api_key: String,
+            api_key: { type: String, index: true },
             api_secret: String
 
         });
+
+    UserModel.plugin(uniqueValidator, { message: 'This E-Mail is already registered.' });
 
     if (typeof UserModel.options.toJSON === 'undefined') {
         UserModel.options.toJSON = {};
