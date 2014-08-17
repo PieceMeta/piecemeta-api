@@ -7,6 +7,7 @@
 
             name: { type: String, required: true },
             email: { type: String, index: true, unique: true, required: true },
+            avatar: { type: String, default: 'robohash' },
             password: { type: String, required: true },
             password_salt: String,
             confirmed: { type: Boolean, required: true, default: false },

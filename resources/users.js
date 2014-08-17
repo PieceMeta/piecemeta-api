@@ -3,7 +3,7 @@ module.exports.list = function (req, res, next) {
     var mongoose = require('mongoose'),
         restify = require('restify');
     mongoose.model('UserModel').find({})
-        .select('id name email last_login')
+        .select('id name email avatar last_login')
         .exec(function (err, data) {
             if (err) {
                 console.log(err);
@@ -30,7 +30,7 @@ module.exports.get = function (req, res, next) {
     }
 
     mongoose.model('UserModel').findById(user_id)
-        .select('id name email last_login')
+        .select('id name email avatar last_login')
         .exec(function (err, data) {
             if (err) {
                 if (err.name && err.name === 'CastError') {
