@@ -21,7 +21,7 @@ module.exports.get = function (req, res, next) {
         restify = require('restify'),
         user_id = req.params.id;
 
-    if (user_id !== 'me' && req.user.id !== user_id) {
+    if (!req.user || (user_id !== 'me' && req.user.id !== user_id)) {
         res.send(new restify.NotAuthorizedError());
         return next();
     }
