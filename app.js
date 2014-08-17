@@ -58,7 +58,7 @@
                     console.log('auth error', err);
                     return next();
                 }
-                if (req.headers.signature === sha1(user.api_secret + req.method + req.url + JSON.stringify(req.body))) {
+                if (user && req.headers.signature === sha1(user.api_secret + req.method + req.url + JSON.stringify(req.body))) {
                     req.user = user;
                 }
                 next();
