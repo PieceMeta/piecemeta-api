@@ -6,7 +6,9 @@
             restify = require('restify');
 
         mongoose.model('DataSequenceModel')
-            .find({}, function (err, data) {
+            .find({})
+            .select('id')
+            .exec(function (err, data) {
                 if (err) {
                     console.log(err);
                     res.send(new restify.InternalError());
