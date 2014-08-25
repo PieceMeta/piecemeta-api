@@ -8,12 +8,18 @@
         sysConfig = new Settings(require('./config')),
         users = require('./resources/users'),
         sessions = require('./resources/sessions'),
-        dataSequences = require('./resources/data-sequences');
+        dataSequences = require('./resources/data-sequences'),
+        dataPackages = require('./resources/data-packages'),
+        dataChannels = require('./resources/data-channels'),
+        dataStreams = require('./resources/data-streams');
 
     // Database
 
     mongoose.connect('mongodb://' + sysConfig.mongodb.host + ':' + sysConfig.mongodb.port + '/' + sysConfig.mongodb.database);
     mongoose.model('DataSequenceModel', require('./models/data-sequence').DataSequenceModel);
+    mongoose.model('DataPackageModel', require('./models/data-package').DataPackageModel);
+    mongoose.model('DataChannelModel', require('./models/data-channel').DataChannelModel);
+    mongoose.model('DataStreamModel', require('./models/data-stream').DataStreamModel);
     mongoose.model('UserModel', require('./models/user').UserModel);
 
 
@@ -89,6 +95,25 @@
     server.get('/data_sequences', dataSequences.list);
     server.get('/data_sequences/:id', dataSequences.get);
     server.post('/data_sequences', dataSequences.post);
+
+    // DataPackages
+
+    server.get('/data_packages', dataPackages.list);
+    server.post('/data_packages', dataPackages.post);
+    server.get('/data_packages/:id', dataPackages.get);
+
+    // DataChannels
+
+    server.get('/data_packages/:data_package_id/channels', dataChannels.list);
+    server.post('/data_packages/:data_package_id/channels', dataChannels.post);
+    server.get('/data_packages/:data_package_id/channels/:id', dataChannels.get);
+    server.put('/data_packages/:data_package_id/channels/:id', dataChannels.put);
+
+    // DataStreams
+
+    server.get('/data_packages/:data_package_id/channels/:data_channel_id/streams', dataStreams.list);
+    server.post('/data_packages/:data_package_id/channels/:data_channel_id/streams', dataStreams.post);
+    server.get('/data_packages/:data_package_id/channels/:data_channel_id/streams/:id', dataStreams.get);
 
 
     // Start server
