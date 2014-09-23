@@ -26,6 +26,13 @@
     // Server config
 
     var server = restify.createServer();
+    server.pre(restify.pre.userAgentConnection());
+    server.pre(function (req, res, next) {
+        req.url = req.url.replace(/.json$/, "");
+        req.headers.accept = "application/json";
+        return next();
+    });
+
     server.use(restify.CORS({
         credentials: true,
         origins: ['*'],
@@ -108,6 +115,7 @@
     server.post('/data_packages/:data_package_id/channels', dataChannels.post);
     server.get('/data_packages/:data_package_id/channels/:id', dataChannels.get);
     server.put('/data_packages/:data_package_id/channels/:id', dataChannels.put);
+    server.del('/data_packages/:data_package_id/channels/:id', dataChannels.remove);
 
     // DataStreams
 

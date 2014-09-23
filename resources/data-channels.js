@@ -98,4 +98,33 @@
                 next();
             });
     };
+
+    module.exports.remove = function (req, res, next) {
+        var mongoose = require('mongoose'),
+            restify = require('restify');
+
+        if (!req.user || !req.user.confirmed) {
+            res.send(new restify.NotAuthorizedError());
+            return next();
+        }
+        if (typeof req.params !== 'object') {
+            res.send(new restify.InvalidArgumentError());
+            return next();
+        }
+
+        mongoose.model('DataChannelModel')
+            .findByIdAndRemove(req.params.id, function (err, channel) {
+                if (err) {
+                    console.log(err);
+                    res.send(new restify.InternalError());
+                    return next();
+                }
+                if (!channel) {
+                    res.send(new restify.ResourceNotFoundError());
+                } else {
+                    res.send(200, '');
+                }
+                next();
+            });
+    };
 }());

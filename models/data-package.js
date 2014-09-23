@@ -4,9 +4,9 @@
         Schema = mongoose.Schema,
         DataPackageModel = Schema({
 
-            contributor_id: { type: Schema.Types.ObjectId, index: true },
-            title: String,
-            description: String,
+            contributor_id: { type: Schema.Types.ObjectId, index: true, required: true },
+            title: { type: String, required: true },
+            description: { type: String },
 
             created_at: Date,
             updated_at: Date
