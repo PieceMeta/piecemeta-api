@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+
+if (!process.argv[2] || !process.argv[3] || !process.argv[4]) {
+    console.log('usage: ./create-admin NAME EMAIL PASSWORD');
+    process.exit(code = 1);
+    return;
+}
+
+var mongoose = require('mongoose'),
+    async = require('async'),
+    Settings = require('settings'),
+    sysConfig = new Settings(require('../config'));
+
+mongoose.connect('mongodb://' + sysConfig.mongodb.host + ':' + sysConfig.mongodb.port + '/' + sysConfig.mongodb.database);
+
+mongoose.model('UserModel', require('../models/user').UserModel);
+mongoose.model('ApiKeyModel', require('../models/api_key').ApiKeyModel);
+
+async.waterfall([
+    function (cb) {
+        mongoose.model('UserModel').create(
+            {
+                name: process.argv[2],
+                email: process.argv[3],
+                password: process.argv[4],
+                confirmed: true
+            }, cb
+        );
+    },
+    function (user, cb) {
+        mongoose.model('ApiKeyModel').create({ user_id: user.id }, cb);
+    }
+], function (err, api_key) {
+    if (err) {
+        console.log('error creating admin user', err);
+        process.exit(code = 1);
+    } else {
+        console.log('sucessfully created admin user with api key', api_key);
+        process.exit(code = 0);
+    }
+});

@@ -5,9 +5,9 @@
         var mongoose = require('mongoose'),
             restify = require('restify');
 
-        mongoose.model('DataChannelModel')
-            .find({ data_package_id: req.params.data_package_id })
-            .select('id data_package_id parent_data_channel_id title created_at updated_at')
+        mongoose.model('ChannelModel')
+            .find({ package_id: req.params.package_id })
+            .select('id package_id parent_channel_id title created updated')
             .exec(function (err, data) {
                 if (err) {
                     console.log(err);
@@ -23,9 +23,9 @@
         var mongoose = require('mongoose'),
             restify = require('restify');
 
-        mongoose.model('DataChannelModel')
+        mongoose.model('ChannelModel')
             .findById(req.params.id)
-            .select('id data_package_id parent_data_channel_id title created_at updated_at')
+            .select('id package_id parent_channel_id title created updated')
             .exec(function (err, data) {
                 if (err) {
                     if (err.name && err.name === 'CastError') {
@@ -48,7 +48,7 @@
     module.exports.post = function (req, res, next) {
         var mongoose = require('mongoose'),
             restify = require('restify'),
-            dataChannel = req.params;
+            channelObject = req.params;
 
         if (!req.user || !req.user.confirmed) {
             res.send(new restify.NotAuthorizedError());
@@ -59,14 +59,16 @@
             return next();
         }
 
-        mongoose.model('DataChannelModel')
+        channelObject.user_id = req.user.id;
+
+        mongoose.model('ChannelModel')
             .create(dataChannel, function (err, data) {
                 if (err) {
                     console.log(err);
                     res.send(new restify.InternalError());
                     return next();
                 }
-                res.send(200, data);
+                res.send(201, data);
                 next();
             });
     };
@@ -74,9 +76,10 @@
     module.exports.put = function (req, res, next) {
         var mongoose = require('mongoose'),
             restify = require('restify'),
-            dataChannel = req.params;
+            channelObject = req.params;
 
-        delete dataChannel.id;
+        delete channelObject.id;
+        delete channelObject.user_id;
 
         if (!req.user || !req.user.confirmed) {
             res.send(new restify.NotAuthorizedError());
@@ -87,8 +90,8 @@
             return next();
         }
 
-        mongoose.model('DataChannelModel')
-            .update({ id: req.params.id }, dataChannel, function (err, data) {
+        mongoose.model('ChannelModel')
+            .update({ id: req.params.id }, channelObject, function (err, data) {
                 if (err) {
                     console.log(err);
                     res.send(new restify.InternalError());
@@ -112,7 +115,7 @@
             return next();
         }
 
-        mongoose.model('DataChannelModel')
+        mongoose.model('ChannelModel')
             .findByIdAndRemove(req.params.id, function (err, channel) {
                 if (err) {
                     console.log(err);
@@ -122,9 +125,10 @@
                 if (!channel) {
                     res.send(new restify.ResourceNotFoundError());
                 } else {
-                    res.send(200, '');
+                    res.send(200, channel);
                 }
                 next();
             });
     };
+
 }());

@@ -2,127 +2,81 @@
     'use strict';
 
     var restify = require('restify'),
-        preflightEnabler = require('se7ensky-restify-preflight'),
         mongoose = require('mongoose'),
+        preflightEnabler = require('se7ensky-restify-preflight'),
+        urlExtParser = require('./lib/parsers/pre/urlext-parser'),
+        bodyParser = require('./lib/body-parser'),
+        xmlFormatter = require('./lib/formatters/xml-formatter'),
+        tokenAuth = require('./lib/token-auth'),
         Settings = require('settings'),
         sysConfig = new Settings(require('./config')),
-        users = require('./resources/users'),
-        sessions = require('./resources/sessions'),
-        dataSequences = require('./resources/data-sequences'),
-        dataPackages = require('./resources/data-packages'),
-        dataChannels = require('./resources/data-channels'),
-        dataStreams = require('./resources/data-streams');
+        resourceMap = require('./resource-map')();
 
     // Database
 
     mongoose.connect('mongodb://' + sysConfig.mongodb.host + ':' + sysConfig.mongodb.port + '/' + sysConfig.mongodb.database);
-    mongoose.model('DataSequenceModel', require('./models/data-sequence').DataSequenceModel);
-    mongoose.model('DataPackageModel', require('./models/data-package').DataPackageModel);
-    mongoose.model('DataChannelModel', require('./models/data-channel').DataChannelModel);
-    mongoose.model('DataStreamModel', require('./models/data-stream').DataStreamModel);
+
+    mongoose.model('PackageModel', require('./models/package').PackageModel);
+    mongoose.model('ChannelModel', require('./models/channel').ChannelModel);
+    mongoose.model('StreamModel', require('./models/stream').StreamModel);
     mongoose.model('UserModel', require('./models/user').UserModel);
+    mongoose.model('ApiKeyModel', require('./models/api_key').ApiKeyModel);
+    mongoose.model('AccessTokenModel', require('./models/access_token').AccessTokenModel);
 
 
     // Server config
 
-    var server = restify.createServer();
-    server.pre(restify.pre.userAgentConnection());
-    server.pre(function (req, res, next) {
-        req.url = req.url.replace(/.json$/, "");
-        req.headers.accept = "application/json";
-        return next();
+    var server = restify.createServer({
+        name: "PieceMeta API Server",
+        version: require("./package.json").version,
+        formatters: {
+            'application/msgpack': function formatMsgPack(req, res, body) {
+                var msgPack = require('msgpack');
+                return msgPack.pack(body);
+            },
+            'application/xml': function formatXml(req, res, body) {
+                return xmlFormatter(req, res, body);
+            }
+        }
     });
+    server.pre(restify.pre.userAgentConnection());
+    server.pre(urlExtParser());
 
     server.use(restify.CORS({
         credentials: true,
         origins: ['*'],
-        allow_headers: ['Authorization', 'Key', 'Signature']
+        allow_headers: ['Authorization', 'Basic']
     }));
+
+    preflightEnabler(server, { headers: ['Authorization', 'Basic'] });
+
     server.use(restify.fullResponse());
-    preflightEnabler(server, { headers: ['Key', 'Signature'] });
     server.use(restify.gzipResponse());
     server.use(restify.authorizationParser());
-    server.use(restify.dateParser());
-    server.use(restify.bodyParser());
+    server.use(tokenAuth());
+    server.use(bodyParser());
 
-    server.use(function (req, res, next) {
-        req.user = null;
-        if (req.authorization.basic) {
-            mongoose.model('UserModel').findOne({
-                email: req.authorization.basic.username
-            },
-            function (err, user) {
-                if (err) {
-                    console.log('auth error', err);
-                    return next();
-                }
-                if (user && user.isValidPassword(req.authorization.basic.password)) {
-                    req.user = user;
-                }
-                next();
-            });
-        } else if (req.headers.key && req.headers.signature) {
-            var sha1 = require('sha1');
-            mongoose.model('UserModel').findOne({
-                api_key: req.headers.key
-            },
-            function (err, user) {
-                if (err) {
-                    console.log('auth error', err);
-                    return next();
-                }
-                var signature = sha1(user.api_secret + req.method + req.url + (req.body ? JSON.stringify(req.body) : ''));
-                if (user && req.headers.signature === signature) {
-                    req.user = user;
-                }
-                next();
-            });
-        } else {
-            next();
-        }
-    });
-
-
-    //  Resources
+    //  Mount resource map
     //
 
-    //  Users
-
-    server.get('/users', users.list);
-    server.get('/users/:id', users.get);
-    server.put('/users/:id', users.put);
-    server.post('/users', users.post);
-
-    //  Sessions
-
-    server.post('/sessions', sessions.post);
-
-    //  DataSequences
-
-    server.get('/data_sequences', dataSequences.list);
-    server.get('/data_sequences/:id', dataSequences.get);
-    server.post('/data_sequences', dataSequences.post);
-
-    // DataPackages
-
-    server.get('/data_packages', dataPackages.list);
-    server.post('/data_packages', dataPackages.post);
-    server.get('/data_packages/:id', dataPackages.get);
-
-    // DataChannels
-
-    server.get('/data_packages/:data_package_id/channels', dataChannels.list);
-    server.post('/data_packages/:data_package_id/channels', dataChannels.post);
-    server.get('/data_packages/:data_package_id/channels/:id', dataChannels.get);
-    server.put('/data_packages/:data_package_id/channels/:id', dataChannels.put);
-    server.del('/data_packages/:data_package_id/channels/:id', dataChannels.remove);
-
-    // DataStreams
-
-    server.get('/data_packages/:data_package_id/channels/:data_channel_id/streams', dataStreams.list);
-    server.post('/data_packages/:data_package_id/channels/:data_channel_id/streams', dataStreams.post);
-    server.get('/data_packages/:data_package_id/channels/:data_channel_id/streams/:id', dataStreams.get);
-
+    for (var n in resourceMap) {
+        if (typeof resourceMap[n] === 'object') {
+            for (var path in resourceMap[n]) {
+                if (Array.isArray(resourceMap[n][path])) {
+                    var entry = resourceMap[n][path];
+                    for (var i in entry) {
+                        if (typeof entry[i] === 'object') {
+                            server[entry[i].type](path, entry[i].controller);
+                        } else {
+                            console.log('failed to add route', path, entry[i]);
+                        }
+                    }
+                }
+            }
+        } else {
+            console.log('failed to mount resource', resourceMap[n], n);
+        }
+    }
 
     // Start server
 

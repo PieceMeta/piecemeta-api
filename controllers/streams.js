@@ -5,9 +5,9 @@
         var mongoose = require('mongoose'),
             restify = require('restify');
 
-        mongoose.model('DataPackageModel')
-            .find({})
-            .select('id title description contributor_id created_at updated_at')
+        mongoose.model('StreamModel')
+            .find({ channel_id: req.params.channel_id })
+            .select('id channel_id title group frames fps created updated')
             .exec(function (err, data) {
                 if (err) {
                     console.log(err);
@@ -23,9 +23,9 @@
         var mongoose = require('mongoose'),
             restify = require('restify');
 
-        mongoose.model('DataPackageModel')
+        mongoose.model('StreamModel')
             .findById(req.params.id)
-            .select('id title description contributor_id created_at updated_at')
+            .select('id channel_id title group frames fps created updated')
             .exec(function (err, data) {
                 if (err) {
                     if (err.name && err.name === 'CastError') {
@@ -48,7 +48,7 @@
     module.exports.post = function (req, res, next) {
         var mongoose = require('mongoose'),
             restify = require('restify'),
-            dataSequence = req.params;
+            streamObject = req.params;
 
         if (!req.user || !req.user.confirmed) {
             res.send(new restify.NotAuthorizedError());
@@ -59,17 +59,18 @@
             return next();
         }
 
-        dataSequence.contributor_id = req.user._id.toString();
+        streamObject.user_id = req.user.id;
 
-        mongoose.model('DataPackageModel')
-            .create(req.params, function (err, data) {
+        mongoose.model('StreamModel')
+            .create(streamObject, function (err, data) {
                 if (err) {
                     console.log(err);
                     res.send(new restify.InternalError());
                     return next();
                 }
-                res.send(200, data);
+                res.send(201, data);
                 next();
             });
     };
+
 }());

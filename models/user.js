@@ -8,16 +8,13 @@
             name: { type: String, required: true },
             email: { type: String, index: true, unique: true, required: true },
             avatar: { type: String, default: 'robohash' },
-            password: { type: String, required: true },
+            crypted_password: { type: String, required: true },
             password_salt: String,
-            confirmed: { type: Boolean, required: true, default: false },
-            blocked: { type: Boolean, required: true, default: false },
-            created_at: Date,
-            updated_at: Date,
-            last_login: Date,
-            single_access_token: String,
-            api_key: { type: String, index: true },
-            api_secret: String
+            confirmed: { type: Boolean, default: false },
+            blocked: { type: Boolean, default: false },
+            created: Date,
+            updated: Date,
+            single_access_token: String
 
         });
 
@@ -28,24 +25,28 @@
     }
 
     UserModel.options.toJSON.transform = function (doc, ret, options) {
-        ret.id = ret._id.toString();
-        delete ret._id;
+        filterParams(ret);
+    };
+
+    if (typeof UserModel.options.toObject === 'undefined') {
+        UserModel.options.toObject = {};
+    }
+
+    UserModel.options.toObject.transform = function (doc, ret, options) {
+        filterParams(ret);
     };
 
     UserModel.pre('save', function (next) {
         var now = Date.now();
-        this.updated_at = now;
-        if (!this.created_at) {
-            this.created_at = now;
+        this.updated = now;
+        if (!this.created) {
+            this.created = now;
         }
         if (typeof this.password_salt === 'undefined') {
             this.password_salt = this.constructor.generatePasswordSalt();
         }
         if (typeof this.single_access_token === 'undefined' && !this.confirmed) {
             this.generateSingleAccessToken();
-        }
-        if (typeof this.api_key === 'undefined') {
-            this.generateApiCredentials();
         }
         next();
     });
@@ -54,15 +55,15 @@
         return /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/i.test(value);
     }, 'Invalid email');
 
-    UserModel.path('password').set(function (password) {
+    UserModel.virtual('password').set(function (password) {
         if (typeof this.password_salt === 'undefined') {
             this.password_salt = this.constructor.generatePasswordSalt();
         }
-        return this.constructor.encryptPassword(password, this.password_salt);
+        this.crypted_password = this.constructor.encryptPassword(password, this.password_salt);
     });
 
     UserModel.methods.isValidPassword = function (password) {
-        return this.password === this.constructor.encryptPassword(password, this.password_salt);
+        return this.crypted_password === this.constructor.encryptPassword(password, this.password_salt);
     };
 
     UserModel.statics.generatePasswordSalt = function () {
@@ -74,17 +75,6 @@
     UserModel.statics.encryptPassword = function (password, salt) {
         var crypto = require('crypto');
         return crypto.createHash('sha512').update(password + salt).digest('hex');
-    };
-
-    UserModel.methods.filterInstance = function () {
-        return {
-            id: this._id.toString(),
-            name: this.name,
-            email: this.email,
-            api_key: this.api_key,
-            api_secret: this.api_secret,
-            last_login: this.last_login
-        };
     };
 
     UserModel.methods.confirmUser = function (callback) {
@@ -117,26 +107,6 @@
         }
     };
 
-    UserModel.methods.generateApiCredentials = function (callback) {
-        var secureRandom = require('secure-random'),
-            sha1 = require('sha1');
-        this.api_key = sha1(secureRandom.randomBuffer(8).toString('hex') + this.email + secureRandom.randomBuffer(8).toString('hex'));
-        this.api_secret = secureRandom.randomBuffer(64).toString('hex');
-        if (callback) {
-            this.save(function (err) {
-                if (err) {
-                    if (typeof callback === 'function') {
-                        callback(err);
-                    }
-                } else {
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                }
-            });
-        }
-    };
-
     UserModel.methods.initiatePasswordReset = function (callback) {
         this.generateSingleAccessToken(function (err) {
             if (err) {
@@ -150,6 +120,16 @@
             }
         });
     };
+
+    function filterParams(obj) {
+        obj.id = obj._id.toString();
+        delete obj.crypted_password;
+        delete obj.single_access_token;
+        delete obj.password_salt;
+        delete obj.blocked;
+        delete obj.confirmed;
+        delete obj._id;
+    }
 
     module.exports.UserModel = UserModel;
 }());
