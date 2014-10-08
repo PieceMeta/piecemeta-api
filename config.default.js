@@ -1,6 +1,5 @@
 module.exports = {
     common: {
-        admin_user_id: '',
         http_port: 8080,
         system_email: 'PieceMeta <info@piecemeta.com>',
         smtp_options: {

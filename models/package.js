@@ -39,6 +39,7 @@
     });
 
     function filterParams(obj) {
+        delete obj.__v;
         obj.id = obj._id.toString();
         obj.user_id = obj.user_id.toString();
         delete obj._id;

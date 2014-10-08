@@ -6,7 +6,7 @@
             user_id: Schema.Types.ObjectId,
             key: String,
             secret: String,
-            scopes: [String],
+            scopes: { type: [String], default: ['user'] },
             created: Date,
             updated: Date,
             active: { type: Boolean, default: true }
@@ -18,6 +18,7 @@
 
     ApiKeyModel.options.toJSON.transform = function (doc, ret, options) {
         filterParams(ret);
+        delete ret.scopes;
     };
 
     if (typeof ApiKeyModel.options.toObject === 'undefined') {
@@ -40,12 +41,16 @@
         next();
     });
 
+    ApiKeyModel.methods.isScopeAllowed = function (scope) {
+        return this.scopes.indexOf(scope) > -1;
+    };
+
     ApiKeyModel.methods.generateApiCredentials = function (callback) {
         var secureRandom = require('secure-random'),
             sha1 = require('sha1');
 
         this.key = sha1(secureRandom.randomBuffer(8).toString('hex') + this.email + secureRandom.randomBuffer(8).toString('hex'));
-        this.secret = secureRandom.randomBuffer(64).toString('hex');
+        this.secret = secureRandom.randomBuffer(128).toString('hex');
 
         if (callback) {
             this.save(function (err) {
@@ -63,6 +68,7 @@
     };
 
     function filterParams(obj) {
+        delete obj.__v;
         delete obj.active;
         delete obj.id;
         delete obj._id;

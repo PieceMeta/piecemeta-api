@@ -46,6 +46,7 @@
         obj.channel_id = obj.channel_id.toString();
         obj.user_id = obj.user_id.toString();
         delete obj._id;
+        delete obj.__v;
     }
 
     module.exports.StreamModel = StreamModel;

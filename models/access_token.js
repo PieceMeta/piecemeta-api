@@ -3,9 +3,9 @@
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
         AccessTokenModel = Schema({
-            api_key: { type: String, index: true },
+            api_key: { type: String, index: true, required: true },
             token: String,
-            scopes: [String],
+            scopes: { type: [String], default: ['user'] },
             issued: Date,
             hours_valid: { type: Number, default: 1440 }
         });
@@ -43,7 +43,7 @@
     AccessTokenModel.methods.generateAccessToken = function (callback) {
         var secureRandom = require('secure-random');
 
-        this.token = secureRandom.randomBuffer(64).toString('hex');
+        this.token = secureRandom.randomBuffer(128).toString('hex');
 
         if (callback) {
             this.save(function (err) {
@@ -61,8 +61,11 @@
     };
 
     function filterParams(obj) {
+        delete obj.__v;
         delete obj.id;
         delete obj._id;
+        delete obj.scopes;
+        delete obj.api_key;
     }
 
     module.exports.AccessTokenModel = AccessTokenModel;

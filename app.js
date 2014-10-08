@@ -8,11 +8,10 @@
         bodyParser = require('./lib/body-parser'),
         xmlFormatter = require('./lib/formatters/xml-formatter'),
         tokenAuth = require('./lib/token-auth'),
+        routeAuth = require('./lib/route-auth'),
         Settings = require('settings'),
         sysConfig = new Settings(require('./config')),
-        resourceMap = require('./resource-map')();
-
-    // Database
+        routes = require('./routes')();
 
     mongoose.connect('mongodb://' + sysConfig.mongodb.host + ':' + sysConfig.mongodb.port + '/' + sysConfig.mongodb.database);
 
@@ -22,9 +21,6 @@
     mongoose.model('UserModel', require('./models/user').UserModel);
     mongoose.model('ApiKeyModel', require('./models/api_key').ApiKeyModel);
     mongoose.model('AccessTokenModel', require('./models/access_token').AccessTokenModel);
-
-
-    // Server config
 
     var server = restify.createServer({
         name: "PieceMeta API Server",
@@ -54,33 +50,22 @@
     server.use(restify.gzipResponse());
     server.use(restify.authorizationParser());
     server.use(tokenAuth());
+    server.use(routeAuth());
     server.use(bodyParser());
 
-    //  Mount resource map
-    //
-
-    for (var n in resourceMap) {
-        if (typeof resourceMap[n] === 'object') {
-            for (var path in resourceMap[n]) {
-                if (Array.isArray(resourceMap[n][path])) {
-                    var entry = resourceMap[n][path];
-                    for (var i in entry) {
-                        if (typeof entry[i] === 'object') {
-                            server[entry[i].type](path, entry[i].controller);
-                        } else {
-                            console.log('failed to add route', path, entry[i]);
-                        }
-                    }
+    for (var path in routes) {
+        if (typeof routes[path] === 'object') {
+            for (var method in routes[path]) {
+                if (typeof routes[path][method] === 'object') {
+                    var routeType = routes[path][method].overrideVerb || method;
+                    server[routeType](path, routes[path][method].controller);
                 }
             }
-        } else {
-            console.log('failed to mount resource', resourceMap[n], n);
         }
     }
-
-    // Start server
 
     server.listen(sysConfig.http_port, function () {
         console.log('%s listening at %s', server.name, server.url);
     });
+
 }());

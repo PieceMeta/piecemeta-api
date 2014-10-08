@@ -14,6 +14,8 @@
             blocked: { type: Boolean, default: false },
             created: Date,
             updated: Date,
+            last_login: Date,
+            failed_logins: { type: Number, default: 0 },
             single_access_token: String
 
         });
@@ -48,7 +50,15 @@
         if (typeof this.single_access_token === 'undefined' && !this.confirmed) {
             this.generateSingleAccessToken();
         }
-        next();
+        if (this.modifiedPaths().indexOf('crypted_password') > -1) {
+            var instance = this;
+            this.constructor.encryptPassword(this.crypted_password, this.password_salt, function (err, crypted_password) {
+                instance.crypted_password = crypted_password;
+                next();
+            });
+        } else {
+            next();
+        }
     });
 
     UserModel.path('email').validate(function (value) {
@@ -56,14 +66,31 @@
     }, 'Invalid email');
 
     UserModel.virtual('password').set(function (password) {
-        if (typeof this.password_salt === 'undefined') {
-            this.password_salt = this.constructor.generatePasswordSalt();
-        }
-        this.crypted_password = this.constructor.encryptPassword(password, this.password_salt);
+        this.password_salt = this.constructor.generatePasswordSalt();
+        this.crypted_password = password;
     });
 
-    UserModel.methods.isValidPassword = function (password) {
-        return this.crypted_password === this.constructor.encryptPassword(password, this.password_salt);
+    UserModel.methods.isValidPassword = function (password, callback) {
+        var instance = this;
+        if (this.failed_logins > 3 && Date.now() - this.last_login < 300000) {
+            callback(new Error('Too many failed login attempts. Account blocked for 5 minutes.'), false);
+        } else {
+            this.constructor.encryptPassword(password, this.password_salt, function (err, password_hash) {
+                if (err) {
+                    return callback(err, false);
+                }
+                instance.last_login = Date.now();
+                var loginSuccess = instance.crypted_password === password_hash;
+                if (!loginSuccess) {
+                    instance.failed_logins += 1;
+                } else {
+                    instance.failed_logins = 0;
+                }
+                instance.save(function (err) {
+                    callback(err, loginSuccess);
+                });
+            });
+        }
     };
 
     UserModel.statics.generatePasswordSalt = function () {
@@ -72,9 +99,13 @@
         return saltbytes.toString('hex');
     };
 
-    UserModel.statics.encryptPassword = function (password, salt) {
-        var crypto = require('crypto');
-        return crypto.createHash('sha512').update(password + salt).digest('hex');
+    UserModel.statics.encryptPassword = function (password, salt, callback) {
+        var crypto = require('crypto'),
+            tstart = Date.now();
+        crypto.pbkdf2(password, salt, 80000, 256, function (err, hash_bytes) {
+            console.log('pw encrypt milliseconds', Date.now() - tstart);
+            callback(err, hash_bytes ? hash_bytes.toString('hex') : null);
+        });
     };
 
     UserModel.methods.confirmUser = function (callback) {
@@ -129,6 +160,7 @@
         delete obj.blocked;
         delete obj.confirmed;
         delete obj._id;
+        delete obj.__v;
     }
 
     module.exports.UserModel = UserModel;

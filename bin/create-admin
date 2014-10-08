@@ -28,7 +28,7 @@ async.waterfall([
         );
     },
     function (user, cb) {
-        mongoose.model('ApiKeyModel').create({ user_id: user.id }, cb);
+        mongoose.model('ApiKeyModel').create({ user_id: user.id, scopes: ['user', 'admin'] }, cb);
     }
 ], function (err, api_key) {
     if (err) {
