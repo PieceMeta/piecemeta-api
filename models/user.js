@@ -39,8 +39,10 @@
     };
 
     UserModel.pre('save', function (next) {
-        var now = Date.now();
+        var now = Date.now(),
+            sanitizer = require('sanitizer');
         this.updated = now;
+        this.name = sanitizer.sanitize(this.name);
         if (!this.created) {
             this.created = now;
         }

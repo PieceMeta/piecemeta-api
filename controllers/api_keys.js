@@ -18,7 +18,15 @@
     };
 
     module.exports.del = function (req, res, next) {
-
+        mongoose.model('ApiKeyModel')
+            .findByIdAndRemove(req.params.id, function (err, data) {
+                if (err) {
+                    res.send(mongoHandler.handleError(err));
+                } else {
+                    res.send(200, data);
+                }
+                next();
+            });
     };
 
 }());

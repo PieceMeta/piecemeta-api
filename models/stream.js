@@ -7,7 +7,7 @@
             channel_id: { type: Schema.Types.ObjectId, index: true, required: true },
             user_id: { type: Schema.Types.ObjectId, index: true, required: true },
             title: { type: String, required: true },
-            group: { type: String, index: true },
+            group: { type: String },
             frames: [Number],
             fps: Number,
 
@@ -39,6 +39,16 @@
             this.created = now;
         }
         next();
+    });
+
+    StreamModel.path('title').set(function (val) {
+        var sanitizer = require('sanitizer');
+        return sanitizer.sanitize(val);
+    });
+
+    StreamModel.path('group').set(function (val) {
+        var sanitizer = require('sanitizer');
+        return sanitizer.sanitize(val);
     });
 
     function filterParams(obj) {

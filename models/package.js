@@ -30,7 +30,10 @@
     };
 
     PackageModel.pre('save', function (next) {
-        var now = Date.now();
+        var now = Date.now(),
+            sanitizer = require('sanitizer');
+        this.title = sanitizer.sanitize(this.title);
+        this.description = sanitizer.sanitize(this.description);
         this.updated = now;
         if (!this.created) {
             this.created = now;

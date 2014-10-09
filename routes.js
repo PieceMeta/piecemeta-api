@@ -25,6 +25,10 @@
                     controller: packages.get,
                     scope: 'public'
                 },
+                'put': {
+                    controller: packages.put,
+                    scope: 'public'
+                },
                 'delete': {
                     controller: packages.del,
                     overrideVerb: 'del',
@@ -37,23 +41,23 @@
                     scope: 'public'
                 }
             },
-            '/packages/:package_id/channels/:id/streams': {
+            '/channels/:id/streams': {
                 'get': {
                     controller: streams.list,
                     scope: 'public'
                 }
             },
             '/channels': {
-                'get': {
-                    controller: channels.get,
-                    scope: 'public'
-                },
                 'post': {
                     controller: channels.post,
                     scope: 'user'
                 }
             },
             '/channels/:id': {
+                'get': {
+                    controller: channels.get,
+                    scope: 'public'
+                },
                 'put': {
                     controller: channels.put,
                     scope: 'user'
@@ -65,16 +69,16 @@
                 }
             },
             '/streams': {
-                'get': {
-                    controller: streams.get,
-                    scope: 'public'
-                },
                 'post': {
                     controller: streams.post,
                     scope: 'user'
                 }
             },
             '/streams/:id': {
+                'get': {
+                    controller: streams.get,
+                    scope: 'public'
+                },
                 'put': {
                     controller: streams.put,
                     scope: 'user'
@@ -88,7 +92,7 @@
             '/users': {
                 'post': {
                     controller: users.post,
-                    scope: 'admin'
+                    scope: 'public'
                 }
             },
             '/users/:id': {
@@ -97,11 +101,11 @@
                     scope: 'public'
                 },
                 'put': {
-                    controller: streams.post,
+                    controller: users.put,
                     scope: 'user'
                 },
                 'delete': {
-                    controller: streams.del,
+                    controller: users.del,
                     overrideVerb: 'del',
                     scope: 'user'
                 }

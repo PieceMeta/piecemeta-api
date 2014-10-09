@@ -7,8 +7,8 @@
 
     module.exports.list = function (req, res, next) {
         mongoose.model('ChannelModel')
-            .find({ package_id: req.params.package_id })
-            .select('id package_id parent_channel_id title created updated')
+            .find({ package_id: req.params.id })
+            .select('id user_id package_id parent_channel_id title created updated')
             .exec(function (err, data) {
                 if (err) {
                     res.send(mongoHandler.handleError(err));
@@ -22,7 +22,7 @@
     module.exports.get = function (req, res, next) {
         mongoose.model('ChannelModel')
             .findById(req.params.id)
-            .select('id package_id parent_channel_id title created updated')
+            .select('id user_id package_id parent_channel_id title created updated')
             .exec(function (err, data) {
                 if (err) {
                     res.send(mongoHandler.handleError(err));
@@ -37,7 +37,7 @@
         var channelObject = req.params;
         channelObject.user_id = req.user.id;
         mongoose.model('ChannelModel')
-            .create(dataChannel, function (err, data) {
+            .create(channelObject, function (err, data) {
                 if (err) {
                     res.send(mongoHandler.handleError(err));
                 } else {
@@ -50,7 +50,7 @@
     module.exports.put = function (req, res, next) {
         var channelObject = req.params;
         mongoose.model('ChannelModel')
-            .update({ id: req.params.id }, channelObject, function (err, data) {
+            .findByIdAndUpdate(req.params.id, channelObject, function (err, data) {
                 if (err) {
                     res.send(mongoHandler.handleError(err));
                 } else {

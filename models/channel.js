@@ -31,6 +31,11 @@
         next();
     });
 
+    ChannelModel.path('title').set(function (val) {
+        var sanitizer = require('sanitizer');
+        return sanitizer.sanitize(val);
+    });
+
     function filterParams(obj) {
         delete obj.__v;
         obj.id = obj._id.toString();
