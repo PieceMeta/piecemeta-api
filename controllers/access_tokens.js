@@ -17,7 +17,7 @@
                             cb(null, api_key, null);
                         }
                     });
-                } else {
+                } else if (req.params.email) {
                     mongoose.model('UserModel').findOne({ email: req.params.email }, function (err, user) {
                         if (err) {
                             cb(mongoHandler.handleError(err), null, null);
@@ -37,17 +37,45 @@
                             cb(new restify.InvalidCredentialsError(), null, null);
                         }
                     });
+                } else if (req.params.single_access_token) {
+                    mongoose.model('UserModel').findOne({}, function (err, user) {
+                        if (err) {
+                            cb(mongoHandler.handleError(err), null, null);
+                        } else if (user) {
+                            user.confirmUser(function (err) {
+                                if (err) {
+                                    cb(mongoHandler.handleError(err), null, null);
+                                } else {
+                                    cb(null, null, user);
+                                }
+                            });
+                        } else {
+                            cb(new restify.InvalidCredentialsError(), null, null);
+                        }
+                    });
+                } else {
+                    cb(new restify.InvalidCredentialsError(), null, null);
                 }
             },
             function (api_key, user, cb) {
                 if (api_key) {
                     cb(null, api_key);
                 } else {
-                    mongoose.model('ApiKeyModel').find({ user_id: user.id }).sort('-issued').exec(function (err, api_key) {
+                    mongoose.model('ApiKeyModel').find({ user_id: user.id }).sort('-issued').exec(function (err, api_keys) {
                         if (err) {
                             cb(mongoHandler.handleError(err), null);
                         } else {
-                            cb(null, api_key[0]);
+                            if (api_keys.length > 0) {
+                                cb(null, api_keys[0]);
+                            } else {
+                                mongoose.model('ApiKeyModel').create({ user_id: user.id }, function (err, api_key) {
+                                    if (err) {
+                                        cb(mongoHandler.handleError(err), null);
+                                    } else {
+                                        cb(null, api_key);
+                                    }
+                                });
+                            }
                         }
                     });
                 }

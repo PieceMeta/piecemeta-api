@@ -52,6 +52,7 @@
         if (typeof this.single_access_token === 'undefined' && !this.confirmed) {
             this.generateSingleAccessToken();
         }
+        console.log(this);
         if (this.modifiedPaths().indexOf('crypted_password') > -1) {
             var instance = this;
             this.constructor.encryptPassword(this.crypted_password, this.password_salt, function (err, crypted_password) {
@@ -157,7 +158,6 @@
     function filterParams(obj) {
         obj.id = obj._id.toString();
         delete obj.crypted_password;
-        delete obj.single_access_token;
         delete obj.password_salt;
         delete obj.blocked;
         delete obj.confirmed;

@@ -33,7 +33,8 @@
         mongoose.model('UserModel')
             .create(req.params, function (err, user) {
                 if (err) {
-                    res.send(mongoHandler.handleError(err));
+                    var mongoErr = mongoHandler.handleError(err);
+                    res.send(mongoErr);
                     next();
                 } else {
                     var mailer = require('../lib/mailer');
