@@ -52,7 +52,6 @@
         if (typeof this.single_access_token === 'undefined' && !this.confirmed) {
             this.generateSingleAccessToken();
         }
-        console.log(this);
         if (this.modifiedPaths().indexOf('crypted_password') > -1) {
             var instance = this;
             this.constructor.encryptPassword(this.crypted_password, this.password_salt, function (err, crypted_password) {
