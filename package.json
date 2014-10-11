@@ -21,6 +21,7 @@
     "settings": "^0.1.1",
     "sha1": "~1.1.0",
     "validator": "^3.19.1",
+    "xml2js": "^0.4.4",
     "xmlbuilder": "^2.4.4"
   }
 }
