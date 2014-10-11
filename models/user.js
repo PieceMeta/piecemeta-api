@@ -1,6 +1,7 @@
 (function () {
     'use strict';
     var mongoose = require('mongoose'),
+        validator = require('validator'),
         Schema = mongoose.Schema,
         uniqueValidator = require('mongoose-unique-validator'),
         UserModel = Schema({
@@ -64,8 +65,12 @@
     });
 
     UserModel.path('email').validate(function (value) {
-        return /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/i.test(value);
+        return validator.isEmail(value);
     }, 'Invalid email');
+
+    UserModel.path('crypted_password').validate(function (value) {
+        return validator.isLength(value, 8);
+    }, 'Password must be at least 8 characters long.');
 
     UserModel.virtual('password').set(function (password) {
         this.password_salt = this.constructor.generatePasswordSalt();
