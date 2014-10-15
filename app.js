@@ -15,6 +15,7 @@
 
     mongoose.connect('mongodb://' + sysConfig.mongodb.host + ':' + sysConfig.mongodb.port + '/' + sysConfig.mongodb.database);
 
+    mongoose.model('CollectionModel', require('./models/collection').CollectionModel);
     mongoose.model('PackageModel', require('./models/package').PackageModel);
     mongoose.model('ChannelModel', require('./models/channel').ChannelModel);
     mongoose.model('StreamModel', require('./models/stream').StreamModel);

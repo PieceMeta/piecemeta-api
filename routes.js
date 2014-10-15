@@ -1,7 +1,8 @@
 (function () {
     'use strict';
 
-    var packages = require('./controllers/packages'),
+    var collections = require('./controllers/collections'),
+        packages = require('./controllers/packages'),
         channels = require('./controllers/channels'),
         streams = require('./controllers/streams'),
         users = require('./controllers/users'),
@@ -10,6 +11,31 @@
 
     module.exports = function () {
         return {
+            '/collections': {
+                'get': {
+                    controller: collections.list,
+                    scope: 'public'
+                },
+                'post': {
+                    controller: collections.post,
+                    scope: 'user'
+                }
+            },
+            '/collections/:id': {
+                'get': {
+                    controller: collections.get,
+                    scope: 'public'
+                },
+                'put': {
+                    controller: collections.put,
+                    scope: 'user'
+                },
+                'delete': {
+                    controller: collections.del,
+                    overrideVerb: 'del',
+                    scope: 'user'
+                }
+            },
             '/packages': {
                 'get': {
                     controller: packages.list,
@@ -27,12 +53,12 @@
                 },
                 'put': {
                     controller: packages.put,
-                    scope: 'public'
+                    scope: 'user'
                 },
                 'delete': {
                     controller: packages.del,
                     overrideVerb: 'del',
-                    scope: 'public'
+                    scope: 'user'
                 }
             },
             '/packages/:id/channels': {
