@@ -13,12 +13,12 @@ var mongoose = require('mongoose'),
 
 mongoose.connect('mongodb://' + sysConfig.mongodb.host + ':' + sysConfig.mongodb.port + '/' + sysConfig.mongodb.database);
 
-mongoose.model('UserModel', require('../models/user').UserModel);
-mongoose.model('ApiKeyModel', require('../models/api_key').ApiKeyModel);
+mongoose.model('User', require('../models/auth/user').User);
+mongoose.model('ApiKey', require('../models/auth/api-key').ApiKey);
 
 async.waterfall([
     function (cb) {
-        mongoose.model('UserModel').create(
+        mongoose.model('User').create(
             {
                 name: process.argv[2],
                 email: process.argv[3],
@@ -28,7 +28,7 @@ async.waterfall([
         );
     },
     function (user, cb) {
-        mongoose.model('ApiKeyModel').create({ user_id: user.id, scopes: ['user', 'admin'] }, cb);
+        mongoose.model('ApiKey').create({ user_id: user.id, scopes: ['user', 'admin'] }, cb);
     }
 ], function (err, api_key) {
     if (err) {

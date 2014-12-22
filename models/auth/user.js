@@ -4,7 +4,7 @@
         validator = require('validator'),
         Schema = mongoose.Schema,
         uniqueValidator = require('mongoose-unique-validator'),
-        UserModel = Schema({
+        User = Schema({
 
             name: { type: String, required: true },
             email: { type: String, index: true, unique: true, required: true },
@@ -21,25 +21,25 @@
 
         });
 
-    UserModel.plugin(uniqueValidator, { message: 'This E-Mail is already registered.' });
+    User.plugin(uniqueValidator, { message: 'This E-Mail is already registered.' });
 
-    if (typeof UserModel.options.toJSON === 'undefined') {
-        UserModel.options.toJSON = {};
+    if (typeof User.options.toJSON === 'undefined') {
+        User.options.toJSON = {};
     }
 
-    UserModel.options.toJSON.transform = function (doc, ret, options) {
+    User.options.toJSON.transform = function (doc, ret, options) {
         filterParams(ret);
     };
 
-    if (typeof UserModel.options.toObject === 'undefined') {
-        UserModel.options.toObject = {};
+    if (typeof User.options.toObject === 'undefined') {
+        User.options.toObject = {};
     }
 
-    UserModel.options.toObject.transform = function (doc, ret, options) {
+    User.options.toObject.transform = function (doc, ret, options) {
         filterParams(ret);
     };
 
-    UserModel.pre('save', function (next) {
+    User.pre('save', function (next) {
         var now = Date.now(),
             sanitizer = require('sanitizer');
         this.updated = now;
@@ -64,20 +64,20 @@
         }
     });
 
-    UserModel.path('email').validate(function (value) {
+    User.path('email').validate(function (value) {
         return validator.isEmail(value);
     }, 'Invalid email');
 
-    UserModel.path('crypted_password').validate(function (value) {
+    User.path('crypted_password').validate(function (value) {
         return validator.isLength(value, 8);
     }, 'Password must be at least 8 characters long.');
 
-    UserModel.virtual('password').set(function (password) {
+    User.virtual('password').set(function (password) {
         this.password_salt = this.constructor.generatePasswordSalt();
         this.crypted_password = password;
     });
 
-    UserModel.methods.isValidPassword = function (password, callback) {
+    User.methods.isValidPassword = function (password, callback) {
         var instance = this;
         if (this.failed_logins > 3 && Date.now() - this.last_login < 300000) {
             callback(new Error('Too many failed login attempts. Account blocked for 5 minutes.'), false);
@@ -100,13 +100,13 @@
         }
     };
 
-    UserModel.statics.generatePasswordSalt = function () {
+    User.statics.generatePasswordSalt = function () {
         var secureRandom = require('secure-random');
         var saltbytes = secureRandom.randomBuffer(48);
         return saltbytes.toString('hex');
     };
 
-    UserModel.statics.encryptPassword = function (password, salt, callback) {
+    User.statics.encryptPassword = function (password, salt, callback) {
         var crypto = require('crypto'),
             tstart = Date.now();
         crypto.pbkdf2(password, salt, 80000, 256, function (err, hash_bytes) {
@@ -115,7 +115,7 @@
         });
     };
 
-    UserModel.methods.confirmUser = function (callback) {
+    User.methods.confirmUser = function (callback) {
         this.single_access_token = null;
         this.confirmed = true;
         this.save(function (err) {
@@ -127,7 +127,7 @@
         });
     };
 
-    UserModel.methods.generateSingleAccessToken = function (callback) {
+    User.methods.generateSingleAccessToken = function (callback) {
         var sha1 = require('sha1');
         this.single_access_token = sha1(this.email + Math.round(Math.random() * 1000000).toString());
         if (callback) {
@@ -145,7 +145,7 @@
         }
     };
 
-    UserModel.methods.initiatePasswordReset = function (callback) {
+    User.methods.initiatePasswordReset = function (callback) {
         this.generateSingleAccessToken(function (err) {
             if (err) {
                 if (typeof callback === 'function') {
@@ -169,5 +169,5 @@
         delete obj.__v;
     }
 
-    module.exports.UserModel = UserModel;
+    module.exports.User = User;
 }());

@@ -1,118 +1,189 @@
 (function () {
     'use strict';
 
-    var collections = require('./controllers/collections'),
-        packages = require('./controllers/packages'),
-        channels = require('./controllers/channels'),
-        streams = require('./controllers/streams'),
-        users = require('./controllers/users'),
-        access_tokens = require('./controllers/access_tokens'),
-        api_keys = require('./controllers/api_keys');
+    var users = require('./controllers/users'),
+        access_tokens = require('./controllers/access-tokens'),
+        res = require('./controllers/resource-common');
 
     module.exports = function () {
         return {
+            '/api_servers': {
+                'get': {
+                    controller: res({ resource: 'ApiServer' }).find,
+                    scope: 'admin'
+                },
+                'post': {
+                    controller: res({ resource: 'ApiServer' }).post,
+                    scope: 'admin'
+                }
+            },
+            '/api_servers/:id': {
+                'get': {
+                    controller: res({ resource: 'ApiServer' }).get,
+                    scope: 'admin'
+                },
+                'put': {
+                    controller: res({ resource: 'ApiServer' }).put,
+                    scope: 'admin'
+                },
+                'delete': {
+                    controller: res({ resource: 'ApiServer' }).del,
+                    overrideVerb: 'del',
+                    scope: 'admin'
+                }
+            },
             '/collections': {
                 'get': {
-                    controller: collections.list,
+                    controller: res({ resource: 'Collection' }).find,
                     scope: 'public'
                 },
                 'post': {
-                    controller: collections.post,
+                    controller: res({ resource: 'Collection' }).post,
                     scope: 'user'
                 }
             },
             '/collections/:id': {
                 'get': {
-                    controller: collections.get,
+                    controller: res({ resource: 'Collection' }).get,
                     scope: 'public'
                 },
                 'put': {
-                    controller: collections.put,
+                    controller: res({ resource: 'Collection' }).put,
                     scope: 'user'
                 },
                 'delete': {
-                    controller: collections.del,
+                    controller: res({ resource: 'Collection' }).del,
                     overrideVerb: 'del',
                     scope: 'user'
                 }
             },
             '/packages': {
                 'get': {
-                    controller: packages.list,
+                    controller: res({ resource: 'Package' }).find,
                     scope: 'public'
                 },
                 'post': {
-                    controller: packages.post,
+                    controller: res({ resource: 'Package' }).post,
                     scope: 'user'
                 }
             },
             '/packages/:id': {
                 'get': {
-                    controller: packages.get,
+                    controller: res({ resource: 'Package' }).get,
                     scope: 'public'
                 },
                 'put': {
-                    controller: packages.put,
+                    controller: res({ resource: 'Package' }).put,
                     scope: 'user'
                 },
                 'delete': {
-                    controller: packages.del,
+                    controller: res({ resource: 'Package' }).del,
                     overrideVerb: 'del',
                     scope: 'user'
                 }
             },
             '/packages/:id/channels': {
                 'get': {
-                    controller: channels.list,
+                    controller: res({ resource: 'Channel', query: { id_mapping: 'package_id' } }).find,
                     scope: 'public'
                 }
             },
             '/channels/:id/streams': {
                 'get': {
-                    controller: streams.list,
+                    controller: res({ resource: 'Stream', query: { id_mapping: 'channel_id' } }).find,
                     scope: 'public'
                 }
             },
             '/channels': {
                 'post': {
-                    controller: channels.post,
+                    controller: res({ resource: 'Channel' }).post,
                     scope: 'user'
                 }
             },
             '/channels/:id': {
                 'get': {
-                    controller: channels.get,
+                    controller: res({ resource: 'Channel' }).get,
                     scope: 'public'
                 },
                 'put': {
-                    controller: channels.put,
+                    controller: res({ resource: 'Channel' }).put,
                     scope: 'user'
                 },
                 'delete': {
-                    controller: channels.del,
+                    controller: res({ resource: 'Channel' }).del,
                     overrideVerb: 'del',
                     scope: 'user'
                 }
             },
+            '/push_subscriptions': {
+                'get': {
+                    controller: res({ resource: 'PushSubscription' }).find,
+                    scope: 'admin'
+                },
+                'post': {
+                    controller: res({ resource: 'PushSubscription' }).post,
+                    scope: 'admin'
+                }
+            },
+            '/push_subscriptions/:id': {
+                'get': {
+                    controller: res({ resource: 'PushSubscription' }).get,
+                    scope: 'admin'
+                },
+                'put': {
+                    controller: res({ resource: 'PushSubscription' }).put,
+                    scope: 'admin'
+                },
+                'delete': {
+                    controller: res({ resource: 'PushSubscription' }).del,
+                    overrideVerb: 'del',
+                    scope: 'admin'
+                }
+            },
             '/streams': {
                 'post': {
-                    controller: streams.post,
+                    controller: res({ resource: 'Stream' }).post,
                     scope: 'user'
                 }
             },
             '/streams/:id': {
                 'get': {
-                    controller: streams.get,
+                    controller: res({ resource: 'Stream' }).get,
                     scope: 'public'
                 },
                 'put': {
-                    controller: streams.put,
+                    controller: res({ resource: 'Stream' }).put,
                     scope: 'user'
                 },
                 'delete': {
-                    controller: streams.del,
+                    controller: res({ resource: 'Stream' }).del,
                     overrideVerb: 'del',
                     scope: 'user'
+                }
+            },
+            '/trackers': {
+                'get': {
+                    controller: res({ resource: 'Tracker' }).find,
+                    scope: 'admin'
+                },
+                'post': {
+                    controller: res({ resource: 'Tracker' }).post,
+                    scope: 'admin'
+                }
+            },
+            '/trackers/:id': {
+                'get': {
+                    controller: res({ resource: 'Tracker' }).get,
+                    scope: 'admin'
+                },
+                'put': {
+                    controller: res({ resource: 'Tracker' }).put,
+                    scope: 'admin'
+                },
+                'delete': {
+                    controller: res({ resource: 'Tracker' }).del,
+                    overrideVerb: 'del',
+                    scope: 'admin'
                 }
             },
             '/users': {
@@ -144,7 +215,7 @@
             },
             '/users/me/api_keys': {
                 'get': {
-                    controller: api_keys.list,
+                    controller: res({ resource: 'ApiKey', query: { user_mapping: 'user_id' } }).find,
                     scope: 'user'
                 }
             }

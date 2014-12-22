@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        StreamModel = Schema({
+        Stream = Schema({
 
             channel_id: { type: Schema.Types.ObjectId, index: true, required: true },
             user_id: { type: Schema.Types.ObjectId, index: true, required: true },
@@ -16,23 +16,23 @@
 
         });
 
-    if (typeof StreamModel.options.toJSON === 'undefined') {
-        StreamModel.options.toJSON = {};
+    if (typeof Stream.options.toJSON === 'undefined') {
+        Stream.options.toJSON = {};
     }
 
-    StreamModel.options.toJSON.transform = function (doc, ret, options) {
+    Stream.options.toJSON.transform = function (doc, ret, options) {
         filterParams(ret);
     };
 
-    if (typeof StreamModel.options.toObject === 'undefined') {
-        StreamModel.options.toObject = {};
+    if (typeof Stream.options.toObject === 'undefined') {
+        Stream.options.toObject = {};
     }
 
-    StreamModel.options.toObject.transform = function (doc, ret, options) {
+    Stream.options.toObject.transform = function (doc, ret, options) {
         filterParams(ret);
     };
 
-    StreamModel.pre('save', function (next) {
+    Stream.pre('save', function (next) {
         var now = Date.now();
         this.updated = now;
         if (!this.created) {
@@ -41,12 +41,12 @@
         next();
     });
 
-    StreamModel.path('title').set(function (val) {
+    Stream.path('title').set(function (val) {
         var sanitizer = require('sanitizer');
         return sanitizer.sanitize(val);
     });
 
-    StreamModel.path('group').set(function (val) {
+    Stream.path('group').set(function (val) {
         var sanitizer = require('sanitizer');
         return sanitizer.sanitize(val);
     });
@@ -59,5 +59,5 @@
         delete obj.__v;
     }
 
-    module.exports.StreamModel = StreamModel;
+    module.exports.Stream = Stream;
 }());

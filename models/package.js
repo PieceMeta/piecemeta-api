@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        PackageModel = Schema({
+        Package = Schema({
 
             user_id: { type: Schema.Types.ObjectId, index: true, required: true },
             title: { type: String, required: true },
@@ -13,23 +13,23 @@
 
         });
 
-    if (typeof PackageModel.options.toJSON === 'undefined') {
-        PackageModel.options.toJSON = {};
+    if (typeof Package.options.toJSON === 'undefined') {
+        Package.options.toJSON = {};
     }
 
-    PackageModel.options.toJSON.transform = function (doc, ret, options) {
+    Package.options.toJSON.transform = function (doc, ret, options) {
         filterParams(ret);
     };
 
-    if (typeof PackageModel.options.toObject === 'undefined') {
-        PackageModel.options.toObject = {};
+    if (typeof Package.options.toObject === 'undefined') {
+        Package.options.toObject = {};
     }
 
-    PackageModel.options.toObject.transform = function (doc, ret, options) {
+    Package.options.toObject.transform = function (doc, ret, options) {
         filterParams(ret);
     };
 
-    PackageModel.pre('save', function (next) {
+    Package.pre('save', function (next) {
         var now = Date.now(),
             sanitizer = require('sanitizer');
         this.title = sanitizer.sanitize(this.title);
@@ -48,5 +48,5 @@
         delete obj._id;
     }
 
-    module.exports.PackageModel = PackageModel;
+    module.exports.Package = Package;
 }());

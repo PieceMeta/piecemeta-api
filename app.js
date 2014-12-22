@@ -5,23 +5,27 @@
         mongoose = require('mongoose'),
         preflightEnabler = require('se7ensky-restify-preflight'),
         urlExtParser = require('./lib/parsers/pre/urlext-parser'),
-        bodyParser = require('./lib/body-parser'),
+        bodyParser = require('./lib/parsers/body-parser'),
         xmlFormatter = require('./lib/formatters/xml-formatter'),
-        tokenAuth = require('./lib/token-auth'),
-        routeAuth = require('./lib/route-auth'),
+        tokenAuth = require('./lib/auth/token-auth'),
+        routeAuth = require('./lib/auth/route-auth'),
+        memcache = require('./lib/memcached'),
         Settings = require('settings'),
         sysConfig = new Settings(require('./config')),
         routes = require('./routes')();
 
     mongoose.connect('mongodb://' + sysConfig.mongodb.host + ':' + sysConfig.mongodb.port + '/' + sysConfig.mongodb.database);
 
-    mongoose.model('CollectionModel', require('./models/collection').CollectionModel);
-    mongoose.model('PackageModel', require('./models/package').PackageModel);
-    mongoose.model('ChannelModel', require('./models/channel').ChannelModel);
-    mongoose.model('StreamModel', require('./models/stream').StreamModel);
-    mongoose.model('UserModel', require('./models/user').UserModel);
-    mongoose.model('ApiKeyModel', require('./models/api_key').ApiKeyModel);
-    mongoose.model('AccessTokenModel', require('./models/access_token').AccessTokenModel);
+    mongoose.model('Collection', require('./models/collection').Collection);
+    mongoose.model('Package', require('./models/package').Package);
+    mongoose.model('Channel', require('./models/channel').Channel);
+    mongoose.model('Stream', require('./models/stream').Stream);
+    mongoose.model('User', require('./models/auth/user').User);
+    mongoose.model('ApiKey', require('./models/auth/api-key').ApiKey);
+    mongoose.model('AccessToken', require('./models/auth/access-token').AccessToken);
+    mongoose.model('ApiServer', require('./models/tracker/api-server').ApiServer);
+    mongoose.model('Tracker', require('./models/tracker/tracker').Tracker);
+    mongoose.model('PushSubscription', require('./models/tracker/push-subscription').PushSubscription);
 
     var server = restify.createServer({
         name: "PieceMeta API Server",
@@ -49,6 +53,7 @@
 
     server.use(restify.fullResponse());
     server.use(restify.gzipResponse());
+    server.use(memcache.read());
     server.use(restify.authorizationParser());
     server.use(tokenAuth());
     server.use(routeAuth());
@@ -59,7 +64,7 @@
             for (var method in routes[path]) {
                 if (typeof routes[path][method] === 'object') {
                     var routeType = routes[path][method].overrideVerb || method;
-                    server[routeType](path, routes[path][method].controller);
+                    server[routeType](path, routes[path][method].controller, memcache.write());
                 }
             }
         }

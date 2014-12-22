@@ -3,14 +3,14 @@
 
     var mongoose = require('mongoose'),
         restify = require('restify'),
-        mongoHandler = require('../lib/mongoose-response');
+        mongoHandler = require('../lib/util/mongoose-response');
 
     module.exports.post = function (req, res, next) {
         var async = require('async');
         async.waterfall([
             function (cb) {
                 if (req.params.key && req.params.secret) {
-                    mongoose.model('ApiKeyModel').findOne({ key: req.params.key, secret: req.params.secret }, function (err, api_key) {
+                    mongoose.model('ApiKey').findOne({ key: req.params.key, secret: req.params.secret }, function (err, api_key) {
                         if (err) {
                             cb(mongoHandler.handleError(err), null, null);
                         } else {
@@ -18,7 +18,7 @@
                         }
                     });
                 } else if (req.params.email) {
-                    mongoose.model('UserModel').findOne({ email: req.params.email }, function (err, user) {
+                    mongoose.model('User').findOne({ email: req.params.email }, function (err, user) {
                         if (err) {
                             cb(mongoHandler.handleError(err), null, null);
                         } else if (user) {
@@ -38,7 +38,7 @@
                         }
                     });
                 } else if (req.params.single_access_token) {
-                    mongoose.model('UserModel').findOne({}, function (err, user) {
+                    mongoose.model('User').findOne({}, function (err, user) {
                         if (err) {
                             cb(mongoHandler.handleError(err), null, null);
                         } else if (user) {
@@ -61,14 +61,14 @@
                 if (api_key) {
                     cb(null, api_key);
                 } else {
-                    mongoose.model('ApiKeyModel').find({ user_id: user.id }).sort('-issued').exec(function (err, api_keys) {
+                    mongoose.model('ApiKey').find({ user_id: user.id }).sort('-issued').exec(function (err, api_keys) {
                         if (err) {
                             cb(mongoHandler.handleError(err), null);
                         } else {
                             if (api_keys.length > 0) {
                                 cb(null, api_keys[0]);
                             } else {
-                                mongoose.model('ApiKeyModel').create({ user_id: user.id }, function (err, api_key) {
+                                mongoose.model('ApiKey').create({ user_id: user.id }, function (err, api_key) {
                                     if (err) {
                                         cb(mongoHandler.handleError(err), null);
                                     } else {
@@ -84,7 +84,7 @@
                 if (!api_key) {
                     cb(new restify.InvalidCredentialsError(), null, null);
                 } else {
-                    mongoose.model('AccessTokenModel').find({ api_key: api_key.key }).sort('-issued').exec(function (err, access_token) {
+                    mongoose.model('AccessToken').find({ api_key: api_key.key }).sort('-issued').exec(function (err, access_token) {
                         if (err) {
                             cb(mongoHandler.handleError(err), null, null);
                         } else {
@@ -97,7 +97,7 @@
                 if (access_token && access_token.isValid) {
                     cb(null, access_token);
                 } else {
-                    mongoose.model('AccessTokenModel').create({ api_key: api_key.key }, function (err, access_token) {
+                    mongoose.model('AccessToken').create({ api_key: api_key.key }, function (err, access_token) {
                         if (err) {
                             cb(mongoHandler.handleError(err), null);
                         } else {

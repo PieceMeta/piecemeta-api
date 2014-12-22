@@ -3,7 +3,7 @@
 
     var mongoose = require('mongoose'),
         restify = require('restify'),
-        mongoHandler = require('../lib/mongoose-response');
+        mongoHandler = require('../lib/util/mongoose-response');
 
     module.exports.get = function (req, res, next) {
         var user_id = req.params.id,
@@ -17,7 +17,7 @@
             selectAttributes = 'id name email';
         }
 
-        mongoose.model('UserModel').findById(user_id)
+        mongoose.model('User').findById(user_id)
             .select(selectAttributes)
             .exec(function (err, user) {
                 if (err) {
@@ -30,14 +30,14 @@
     };
 
     module.exports.post = function (req, res, next) {
-        mongoose.model('UserModel')
+        mongoose.model('User')
             .create(req.params, function (err, user) {
                 if (err) {
                     var mongoErr = mongoHandler.handleError(err);
                     res.send(mongoErr);
                     next();
                 } else {
-                    var mailer = require('../lib/mailer');
+                    var mailer = require('../lib/mailer/mailer');
                     mailer.sendConfirmationRequest(user, function (err, response) {
                         // TODO: add a persisted queue to be able to retry failed mails
                         if (err) {
@@ -62,7 +62,7 @@
             user_id = req.user.id;
         }
 
-        mongoose.model('UserModel')
+        mongoose.model('User')
             .findByIdAndUpdate(user_id, req.params, function (err, user) {
                 if (err) {
                     res.send(mongoHandler.handleError(err));
@@ -74,7 +74,7 @@
     };
 
     module.exports.del = function (req, res, next) {
-        mongoose.model('UserModel')
+        mongoose.model('User')
             .findByIdAndRemove(req.params.id, function (err, data) {
                 if (err) {
                     res.send(mongoHandler.handleError(err));

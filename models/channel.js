@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        ChannelModel = Schema({
+        Channel = Schema({
 
             package_id: { type: Schema.Types.ObjectId, index: true, required: true },
             user_id: { type: Schema.Types.ObjectId, index: true, required: true },
@@ -14,15 +14,15 @@
 
         });
 
-    if (typeof ChannelModel.options.toJSON === 'undefined') {
-        ChannelModel.options.toJSON = {};
+    if (typeof Channel.options.toJSON === 'undefined') {
+        Channel.options.toJSON = {};
     }
 
-    ChannelModel.options.toJSON.transform = function (doc, ret, options) {
+    Channel.options.toJSON.transform = function (doc, ret, options) {
         filterParams(ret);
     };
 
-    ChannelModel.pre('save', function (next) {
+    Channel.pre('save', function (next) {
         var now = Date.now();
         this.updated_at = now;
         if (!this.created_at) {
@@ -31,7 +31,7 @@
         next();
     });
 
-    ChannelModel.path('title').set(function (val) {
+    Channel.path('title').set(function (val) {
         var sanitizer = require('sanitizer');
         return sanitizer.sanitize(val);
     });
@@ -45,5 +45,5 @@
         delete obj._id;
     }
 
-    module.exports.ChannelModel = ChannelModel;
+    module.exports.Channel = Channel;
 }());
