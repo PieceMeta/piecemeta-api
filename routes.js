@@ -24,12 +24,14 @@
                 },
                 'put': {
                     controller: res({ resource: 'ApiServer' }).put,
-                    scope: 'admin'
+                    scope: 'admin',
+                    cache_related: ['/api_servers']
                 },
                 'delete': {
                     controller: res({ resource: 'ApiServer' }).del,
                     overrideVerb: 'del',
-                    scope: 'admin'
+                    scope: 'admin',
+                    cache_related: ['/api_servers']
                 }
             },
             '/collections': {
@@ -49,12 +51,14 @@
                 },
                 'put': {
                     controller: res({ resource: 'Collection' }).put,
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/collections']
                 },
                 'delete': {
                     controller: res({ resource: 'Collection' }).del,
                     overrideVerb: 'del',
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/collections']
                 }
             },
             '/packages': {
@@ -74,12 +78,14 @@
                 },
                 'put': {
                     controller: res({ resource: 'Package' }).put,
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/packages']
                 },
                 'delete': {
                     controller: res({ resource: 'Package' }).del,
                     overrideVerb: 'del',
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/packages']
                 }
             },
             '/packages/:id/channels': {
@@ -107,12 +113,14 @@
                 },
                 'put': {
                     controller: res({ resource: 'Channel' }).put,
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/packages/:id/channels']
                 },
                 'delete': {
                     controller: res({ resource: 'Channel' }).del,
                     overrideVerb: 'del',
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/packages/:id/channels']
                 }
             },
             '/push_subscriptions': {
@@ -132,12 +140,14 @@
                 },
                 'put': {
                     controller: res({ resource: 'PushSubscription' }).put,
-                    scope: 'admin'
+                    scope: 'admin',
+                    cache_related: ['/push_subscriptions']
                 },
                 'delete': {
                     controller: res({ resource: 'PushSubscription' }).del,
                     overrideVerb: 'del',
-                    scope: 'admin'
+                    scope: 'admin',
+                    cache_related: ['/push_subscriptions']
                 }
             },
             '/streams': {
@@ -153,12 +163,14 @@
                 },
                 'put': {
                     controller: res({ resource: 'Stream' }).put,
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/channels/:id/streams']
                 },
                 'delete': {
                     controller: res({ resource: 'Stream' }).del,
                     overrideVerb: 'del',
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/channels/:id/streams']
                 }
             },
             '/trackers': {
@@ -178,12 +190,14 @@
                 },
                 'put': {
                     controller: res({ resource: 'Tracker' }).put,
-                    scope: 'admin'
+                    scope: 'admin',
+                    cache_related: ['/trackers']
                 },
                 'delete': {
                     controller: res({ resource: 'Tracker' }).del,
                     overrideVerb: 'del',
-                    scope: 'admin'
+                    scope: 'admin',
+                    cache_related: ['/trackers']
                 }
             },
             '/users': {

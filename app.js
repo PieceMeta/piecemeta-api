@@ -64,7 +64,7 @@
             for (var method in routes[path]) {
                 if (typeof routes[path][method] === 'object') {
                     var routeType = routes[path][method].overrideVerb || method;
-                    server[routeType](path, routes[path][method].controller, memcache.write());
+                    server[routeType](path, routes[path][method].controller, memcache.write(), memcache.del());
                 }
             }
         }
