@@ -4,8 +4,10 @@
         Schema = mongoose.Schema,
         Stream = Schema({
 
-            channel_id: { type: Schema.Types.ObjectId, index: true, required: true },
-            user_id: { type: Schema.Types.ObjectId, index: true, required: true },
+            uuid: { type: String, unique: true },
+            namespace: { type: String, required: true },
+            channel_uuid: { type: String, index: true, required: true },
+            user_uuid: { type: String, index: true, required: true },
             title: { type: String, required: true },
             group: { type: String },
             frames: [Number],
@@ -14,6 +16,9 @@
             created: Date,
             updated: Date
 
+        }, {
+            autoindex: process.env.NODE_ENV !== 'production',
+            id: false
         });
 
     if (typeof Stream.options.toJSON === 'undefined') {
@@ -32,11 +37,19 @@
         filterParams(ret);
     };
 
+    Stream.methods.generateUUID = function () {
+        var uuid = require('../lib/util/uuid');
+        this.uuid = uuid.v5(this.created + this.user_uuid, this.namespace);
+    };
+
     Stream.pre('save', function (next) {
         var now = Date.now();
         this.updated = now;
         if (!this.created) {
             this.created = now;
+        }
+        if (!this.uuid) {
+            this.generateUUID();
         }
         next();
     });
@@ -52,11 +65,8 @@
     });
 
     function filterParams(obj) {
-        obj.id = obj._id.toString();
-        obj.channel_id = obj.channel_id.toString();
-        obj.user_id = obj.user_id.toString();
-        delete obj._id;
         delete obj.__v;
+        delete obj._id;
     }
 
     module.exports.Stream = Stream;

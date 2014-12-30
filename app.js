@@ -27,6 +27,13 @@
     mongoose.model('Tracker', require('./models/tracker/tracker').Tracker);
     mongoose.model('PushSubscription', require('./models/tracker/push-subscription').PushSubscription);
 
+    var serverInfo = require('./lib/util/server-info');
+    serverInfo.loadInfo(function (err, info) {
+        if (err || !info) {
+            console.log('error loading server info', err, info);
+        }
+    });
+
     var server = restify.createServer({
         name: "PieceMeta API Server",
         version: require("./package.json").version,
@@ -69,6 +76,17 @@
             }
         }
     }
+
+    var workerFarm = require('worker-farm'),
+        workers = workerFarm(require.resolve('./workers/update'));
+
+    /*
+    setInterval(function () {
+        workers(function (err, pid) {
+            console.log('update job finished', err, pid);
+        });
+    },10*1000);
+    */
 
     server.listen(sysConfig.http_port, function () {
         console.log('%s listening at %s', server.name, server.url);

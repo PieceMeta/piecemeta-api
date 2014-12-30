@@ -10,6 +10,9 @@
             last_status: Number,
             created: Date,
             updated: Date
+        }, {
+            autoindex: process.env.NODE_ENV !== 'production',
+            id: false
         });
 
     if (typeof PushSubscription.options.toJSON === 'undefined') {
@@ -38,7 +41,6 @@
     });
 
     function filterParams(obj) {
-        obj.id = obj._id.toString();
         delete obj.__v;
         delete obj._id;
     }

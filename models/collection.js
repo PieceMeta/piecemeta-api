@@ -4,13 +4,18 @@
         Schema = mongoose.Schema,
         Collection = Schema({
 
-            user_id: { type: Schema.Types.ObjectId, index: true, required: true },
+            uuid: { type: String, unique: true },
+            namespace: { type: String, required: true },
+            user_uuid: { type: String, index: true, required: true },
             title: { type: String, required: true },
             description: { type: String },
 
             created: Date,
             updated: Date
 
+        }, {
+            autoindex: process.env.NODE_ENV !== 'production',
+            id: false
         });
 
     if (typeof Collection.options.toJSON === 'undefined') {
@@ -29,6 +34,11 @@
         filterParams(ret);
     };
 
+    Collection.methods.generateUUID = function () {
+        var uuid = require('../lib/util/uuid');
+        this.uuid = uuid.v5(this.created + this.user_uuid, this.namespace);
+    };
+
     Collection.pre('save', function (next) {
         var now = Date.now(),
             sanitizer = require('sanitizer');
@@ -38,13 +48,14 @@
         if (!this.created) {
             this.created = now;
         }
+        if (!this.uuid) {
+            this.generateUUID();
+        }
         next();
     });
 
     function filterParams(obj) {
         delete obj.__v;
-        obj.id = obj._id.toString();
-        obj.user_id = obj.user_id.toString();
         delete obj._id;
     }
 

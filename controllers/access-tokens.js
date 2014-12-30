@@ -38,7 +38,7 @@
                         }
                     });
                 } else if (req.params.single_access_token) {
-                    mongoose.model('User').findOne({}, function (err, user) {
+                    mongoose.model('User').findOne({ single_access_token: req.params.single_access_token }, function (err, user) {
                         if (err) {
                             cb(mongoHandler.handleError(err), null, null);
                         } else if (user) {
@@ -61,14 +61,14 @@
                 if (api_key) {
                     cb(null, api_key);
                 } else {
-                    mongoose.model('ApiKey').find({ user_id: user.id }).sort('-issued').exec(function (err, api_keys) {
+                    mongoose.model('ApiKey').find({ user_uuid: user.uuid }).sort('-issued').exec(function (err, api_keys) {
                         if (err) {
                             cb(mongoHandler.handleError(err), null);
                         } else {
                             if (api_keys.length > 0) {
                                 cb(null, api_keys[0]);
                             } else {
-                                mongoose.model('ApiKey').create({ user_id: user.id }, function (err, api_key) {
+                                mongoose.model('ApiKey').create({ user_uuid: user.uuid }, function (err, api_key) {
                                     if (err) {
                                         cb(mongoHandler.handleError(err), null);
                                     } else {

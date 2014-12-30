@@ -4,14 +4,19 @@
         Schema = mongoose.Schema,
         Channel = Schema({
 
-            package_id: { type: Schema.Types.ObjectId, index: true, required: true },
-            user_id: { type: Schema.Types.ObjectId, index: true, required: true },
+            uuid: { type: String, unique: true },
+            namespace: { type: String, required: true },
+            package_uuid: { type: String, index: true, required: true },
+            user_uuid: { type: String, index: true, required: true },
             title: { type: String, required: true },
-            parent_channel_id: { type: Schema.Types.ObjectId, index: true },
+            parent_channel_uuid: { type: String, index: true },
 
             created: Date,
             updated: Date
 
+        }, {
+            autoindex: process.env.NODE_ENV !== 'production',
+            id: false
         });
 
     if (typeof Channel.options.toJSON === 'undefined') {
@@ -22,11 +27,19 @@
         filterParams(ret);
     };
 
+    Channel.methods.generateUUID = function () {
+        var uuid = require('../lib/util/uuid');
+        this.uuid = uuid.v5(this.created + this.user_uuid, this.namespace);
+    };
+
     Channel.pre('save', function (next) {
         var now = Date.now();
-        this.updated_at = now;
-        if (!this.created_at) {
-            this.created_at = now;
+        this.updated = now;
+        if (!this.created) {
+            this.created = now;
+        }
+        if (!this.uuid) {
+            this.generateUUID();
         }
         next();
     });
@@ -38,10 +51,6 @@
 
     function filterParams(obj) {
         delete obj.__v;
-        obj.id = obj._id.toString();
-        obj.package_id = obj.package_id.toString();
-        obj.user_id = obj.user_id.toString();
-        if (typeof obj.parent_channel_id !== 'undefined') obj.parent_channel_id = obj.parent_channel_id.toString();
         delete obj._id;
     }
 

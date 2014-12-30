@@ -17,7 +17,7 @@
                     scope: 'admin'
                 }
             },
-            '/api_servers/:id': {
+            '/api_servers/:uuid': {
                 'get': {
                     controller: res({ resource: 'ApiServer' }).get,
                     scope: 'admin'
@@ -44,7 +44,7 @@
                     scope: 'user'
                 }
             },
-            '/collections/:id': {
+            '/collections/:uuid': {
                 'get': {
                     controller: res({ resource: 'Collection' }).get,
                     scope: 'public'
@@ -71,7 +71,7 @@
                     scope: 'user'
                 }
             },
-            '/packages/:id': {
+            '/packages/:uuid': {
                 'get': {
                     controller: res({ resource: 'Package' }).get,
                     scope: 'public'
@@ -88,15 +88,15 @@
                     cache_related: ['/packages']
                 }
             },
-            '/packages/:id/channels': {
+            '/packages/:uuid/channels': {
                 'get': {
-                    controller: res({ resource: 'Channel', query: { id_mapping: 'package_id' } }).find,
+                    controller: res({ resource: 'Channel', query: { id_mapping: 'package_uuid' } }).find,
                     scope: 'public'
                 }
             },
-            '/channels/:id/streams': {
+            '/channels/:uuid/streams': {
                 'get': {
-                    controller: res({ resource: 'Stream', query: { id_mapping: 'channel_id' } }).find,
+                    controller: res({ resource: 'Stream', query: { id_mapping: 'channel_uuid' } }).find,
                     scope: 'public'
                 }
             },
@@ -106,7 +106,7 @@
                     scope: 'user'
                 }
             },
-            '/channels/:id': {
+            '/channels/:uuid': {
                 'get': {
                     controller: res({ resource: 'Channel' }).get,
                     scope: 'public'
@@ -114,13 +114,13 @@
                 'put': {
                     controller: res({ resource: 'Channel' }).put,
                     scope: 'user',
-                    cache_related: ['/packages/:id/channels']
+                    cache_related: ['/packages/:uuid/channels']
                 },
                 'delete': {
                     controller: res({ resource: 'Channel' }).del,
                     overrideVerb: 'del',
                     scope: 'user',
-                    cache_related: ['/packages/:id/channels']
+                    cache_related: ['/packages/:uuid/channels']
                 }
             },
             '/push_subscriptions': {
@@ -133,7 +133,7 @@
                     scope: 'admin'
                 }
             },
-            '/push_subscriptions/:id': {
+            '/push_subscriptions/:uuid': {
                 'get': {
                     controller: res({ resource: 'PushSubscription' }).get,
                     scope: 'admin'
@@ -156,7 +156,7 @@
                     scope: 'user'
                 }
             },
-            '/streams/:id': {
+            '/streams/:uuid': {
                 'get': {
                     controller: res({ resource: 'Stream' }).get,
                     scope: 'public'
@@ -164,13 +164,13 @@
                 'put': {
                     controller: res({ resource: 'Stream' }).put,
                     scope: 'user',
-                    cache_related: ['/channels/:id/streams']
+                    cache_related: ['/channels/:uuid/streams']
                 },
                 'delete': {
                     controller: res({ resource: 'Stream' }).del,
                     overrideVerb: 'del',
                     scope: 'user',
-                    cache_related: ['/channels/:id/streams']
+                    cache_related: ['/channels/:uuid/streams']
                 }
             },
             '/trackers': {
@@ -183,7 +183,7 @@
                     scope: 'admin'
                 }
             },
-            '/trackers/:id': {
+            '/trackers/:uuid': {
                 'get': {
                     controller: res({ resource: 'Tracker' }).get,
                     scope: 'admin'
@@ -206,7 +206,7 @@
                     scope: 'public'
                 }
             },
-            '/users/:id': {
+            '/users/:uuid': {
                 'get': {
                     controller: users.get,
                     scope: 'public'
@@ -229,7 +229,7 @@
             },
             '/users/me/api_keys': {
                 'get': {
-                    controller: res({ resource: 'ApiKey', query: { user_mapping: 'user_id' } }).find,
+                    controller: res({ resource: 'ApiKey', query: { user_mapping: 'user_uuid' } }).find,
                     scope: 'user'
                 }
             }

@@ -3,13 +3,16 @@
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
         ApiKey = Schema({
-            user_id: Schema.Types.ObjectId,
+            user_uuid: String,
             key: String,
             secret: String,
             scopes: { type: [String], default: ['user'] },
             created: Date,
             updated: Date,
             active: { type: Boolean, default: true }
+        }, {
+            autoindex: process.env.NODE_ENV !== 'production',
+            id: false
         });
 
     if (typeof ApiKey.options.toJSON === 'undefined') {
@@ -69,9 +72,8 @@
 
     function filterParams(obj) {
         delete obj.__v;
-        delete obj.active;
-        delete obj.id;
         delete obj._id;
+        delete obj.active;
     }
 
     module.exports.ApiKey = ApiKey;

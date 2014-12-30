@@ -6,6 +6,7 @@
         uniqueValidator = require('mongoose-unique-validator'),
         User = Schema({
 
+            uuid: { type: String, unique: true },
             name: { type: String, required: true },
             email: { type: String, index: true, unique: true, required: true },
             avatar: { type: String, default: 'robohash' },
@@ -19,6 +20,9 @@
             failed_logins: { type: Number, default: 0 },
             single_access_token: String
 
+        }, {
+            autoindex: process.env.NODE_ENV !== 'production',
+            id: false
         });
 
     User.plugin(uniqueValidator, { message: 'This E-Mail is already registered.' });
@@ -44,6 +48,9 @@
             sanitizer = require('sanitizer');
         this.updated = now;
         this.name = sanitizer.sanitize(this.name);
+        if (!this.uuid) {
+            this.generateUUID();
+        }
         if (!this.created) {
             this.created = now;
         }
@@ -127,6 +134,13 @@
         });
     };
 
+    User.methods.generateUUID = function () {
+        if (this.email) {
+            var uuid = require('../../lib/util/uuid');
+            this.uuid = uuid.v5(this.email);
+        }
+    };
+
     User.methods.generateSingleAccessToken = function (callback) {
         var sha1 = require('sha1');
         this.single_access_token = sha1(this.email + Math.round(Math.random() * 1000000).toString());
@@ -160,13 +174,12 @@
     };
 
     function filterParams(obj) {
-        obj.id = obj._id.toString();
         delete obj.crypted_password;
         delete obj.password_salt;
         delete obj.blocked;
         delete obj.confirmed;
-        delete obj._id;
         delete obj.__v;
+        delete obj._id;
     }
 
     module.exports.User = User;

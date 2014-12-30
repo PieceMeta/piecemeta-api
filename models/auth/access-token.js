@@ -8,6 +8,9 @@
             scopes: { type: [String], default: ['user'] },
             issued: Date,
             hours_valid: { type: Number, default: 1440 }
+        }, {
+            autoindex: process.env.NODE_ENV !== 'production',
+            id: false
         });
 
     if (typeof AccessToken.options.toJSON === 'undefined') {
@@ -62,7 +65,6 @@
 
     function filterParams(obj) {
         delete obj.__v;
-        delete obj.id;
         delete obj._id;
         delete obj.scopes;
         delete obj.api_key;

@@ -10,10 +10,10 @@
                 var query = {};
                 if (typeof config.query === 'object') {
                     if (typeof config.query.id_mapping === 'string') {
-                        query[config.query.id_mapping] = req.params.id;
+                        query[config.query.id_mapping] = req.params.uuid;
                     }
                     if (typeof config.query.user_mapping === 'string') {
-                        query[config.query.user_mapping] = req.user.id;
+                        query[config.query.user_mapping] = req.user.uuid;
                     }
                 }
                 mongoose.model(config.resource).find(query)
@@ -27,7 +27,7 @@
                     });
             },
             get: function (req, res, next) {
-                mongoose.model(config.resource).findById(req.params.id)
+                mongoose.model(config.resource).findOne({ uuid: req.params.uuid })
                     .exec(function (err, data) {
                         if (err) {
                             res.send(mongoHandler.handleError(err));
@@ -39,7 +39,11 @@
             },
             post: function (req, res, next) {
                 var object = req.body;
-                object.user_id = req.user.id;
+                object.user_uuid = req.user.uuid;
+                if (mongoose.model(config.resource).schema.path('namespace')) {
+                    var serverInfo = require('../lib/util/server-info');
+                    object.namespace = serverInfo.getServerInfo().uuid;
+                }
                 mongoose.model(config.resource)
                     .create(req.body, function (err, data) {
                         if (err) {
@@ -52,7 +56,7 @@
             },
             put: function (req, res, next) {
                 mongoose.model(config.resource)
-                    .findByIdAndUpdate(req.params.id, req.body, function (err, data) {
+                    .findOneAndUpdate({ uuid: req.params.uuid }, req.body, function (err, data) {
                         if (err) {
                             res.send(mongoHandler.handleError(err));
                         } else {
@@ -63,7 +67,7 @@
             },
             del: function (req, res, next) {
                 mongoose.model(config.resource)
-                    .findByIdAndRemove(req.params.id, function (err, data) {
+                    .findOneAndRemove({ uuid: req.params.uuid }, function (err, data) {
                         if (err) {
                             res.send(mongoHandler.handleError(err));
                         } else {

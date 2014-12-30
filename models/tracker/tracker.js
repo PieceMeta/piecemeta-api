@@ -3,6 +3,7 @@
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
         Tracker = Schema({
+            uuid: { type: String, unique: true, required: true },
             host: String,
             port: Number,
             secure: Boolean,
@@ -10,6 +11,9 @@
             last_status: Number,
             created: Date,
             updated: Date
+        }, {
+            autoindex: process.env.NODE_ENV !== 'production',
+            id: false
         });
 
     if (typeof Tracker.options.toJSON === 'undefined') {
@@ -39,7 +43,6 @@
     });
 
     function filterParams(obj) {
-        obj.id = obj._id.toString();
         delete obj.__v;
         delete obj._id;
     }

@@ -6,18 +6,18 @@
         mongoHandler = require('../lib/util/mongoose-response');
 
     module.exports.get = function (req, res, next) {
-        var user_id = req.params.id,
-            selectAttributes = 'id name';
+        var user_uuid = req.params.uuid,
+            selectAttributes = 'uuid name';
 
-        if (!req.user && user_id === 'me') {
+        if (!req.user && user_uuid === 'me') {
             res.send(new restify.NotAuthorizedError());
             return next();
-        } else if (req.user && user_id === 'me') {
-            user_id = req.user.id;
-            selectAttributes = 'id name email';
+        } else if (req.user && user_uuid === 'me') {
+            user_uuid = req.user.uuid;
+            selectAttributes = 'uuid name email';
         }
 
-        mongoose.model('User').findById(user_id)
+        mongoose.model('User').findOne({ uuid: user_uuid })
             .select(selectAttributes)
             .exec(function (err, user) {
                 if (err) {
@@ -51,19 +51,19 @@
     };
 
     module.exports.put = function (req, res, next) {
-        var user_id = req.params.id;
+        var user_uuid = req.params.uuid;
 
-        if (!req.user || (user_id !== 'me' && req.user.id !== user_id)) {
+        if (!req.user || (user_uuid !== 'me' && req.user.uuid !== user_uuid)) {
             res.send(new restify.NotAuthorizedError());
             return next();
         }
 
-        if (user_id === 'me') {
-            user_id = req.user.id;
+        if (user_uuid === 'me') {
+            user_uuid = req.user.uuid;
         }
 
         mongoose.model('User')
-            .findByIdAndUpdate(user_id, req.params, function (err, user) {
+            .findOneAndUpdate({ uuid: user_uuid }, req.params, function (err, user) {
                 if (err) {
                     res.send(mongoHandler.handleError(err));
                 } else {
@@ -75,7 +75,7 @@
 
     module.exports.del = function (req, res, next) {
         mongoose.model('User')
-            .findByIdAndRemove(req.params.id, function (err, data) {
+            .findOneAndRemove({ uuid: req.params.uuid }, function (err, data) {
                 if (err) {
                     res.send(mongoHandler.handleError(err));
                 } else {
