@@ -3,8 +3,9 @@
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
         PushSubscription = Schema({
-            api_server_uuid: { type: String, index: true },
-            token: String,
+            api_server_uuid: { type: String, index: true, required: true },
+            api_key: String,
+            access_token: String,
             accepted: Boolean,
             last_updated: Date,
             last_status: Number,

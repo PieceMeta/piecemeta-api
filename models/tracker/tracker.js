@@ -3,7 +3,7 @@
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
         Tracker = Schema({
-            uuid: { type: String, unique: true, required: true },
+            uuid: { type: String, unique: true },
             host: String,
             port: Number,
             secure: Boolean,

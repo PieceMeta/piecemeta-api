@@ -9,9 +9,8 @@
             uuid: { type: String, unique: true },
             name: { type: String, required: true },
             email: { type: String, index: true, unique: true, required: true },
-            avatar: { type: String, default: 'robohash' },
             crypted_password: { type: String, required: true },
-            password_salt: String,
+            password_salt: { type: String, required: true },
             confirmed: { type: Boolean, default: false },
             blocked: { type: Boolean, default: false },
             created: Date,
@@ -114,10 +113,8 @@
     };
 
     User.statics.encryptPassword = function (password, salt, callback) {
-        var crypto = require('crypto'),
-            tstart = Date.now();
+        var crypto = require('crypto');
         crypto.pbkdf2(password, salt, 80000, 256, function (err, hash_bytes) {
-            console.log('pw encrypt milliseconds', Date.now() - tstart);
             callback(err, hash_bytes ? hash_bytes.toString('hex') : null);
         });
     };

@@ -3,8 +3,7 @@
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
         ApiServer = Schema({
-            uuid: { type: String, index: true },
-            secret: String,
+            uuid: { type: String, unique: true },
             host: String,
             port: Number,
             secure: Boolean,
