@@ -225,20 +225,22 @@ function createAdminUser(callback) {
         function (data, config, cb) {
             mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.dbname);
             mongoose.model('User', require('../models/auth/user').User);
-            mongoose.model('ApiKey', require('../models/auth/api-key').ApiKey);
-            mongoose.model('User').create(
-                {
-                    name: data.name,
-                    email: data.email,
-                    password: data.password,
-                    confirmed: true
-                }, cb
-            );
+            var user = {
+                name: data.name,
+                email: data.email,
+                password: data.password,
+                confirmed: true
+            };
+            console.log(user);
+            mongoose.model('User').create(user, cb);
         },
         function (user, cb) {
+            console.log(user);
+            mongoose.model('ApiKey', require('../models/auth/api-key').ApiKey);
             mongoose.model('ApiKey').create({ user_uuid: user.uuid, scopes: ['user', 'admin'] }, cb);
         }
-    ], function (err) {
+    ], function (err, apikey) {
+        console.log(apikey);
         callback(err);
     });
 }

@@ -20,7 +20,11 @@
         },
         function (cb) {
             if (config.get) {
-                mongoose.connect('mongodb://' + config.get.mongodb.host + ':' + config.get.mongodb.port + '/' + config.get.mongodb.database);
+                var dburl = 'mongodb://' +
+                    config.get.mongodb.host + ':' +
+                    config.get.mongodb.port + '/' +
+                    config.get.mongodb.dbname;
+                mongoose.connect(dburl);
                 mongoose.model('Collection', require('./models/collection').Collection);
                 mongoose.model('Package', require('./models/package').Package);
                 mongoose.model('Channel', require('./models/channel').Channel);
@@ -47,13 +51,6 @@
             */
             cb(null);
         }, function (cb) {
-            var serverInfo = require('./lib/util/server-info');
-            serverInfo.loadInfo(function (err, info) {
-                if (err || !info) {
-                    console.log('error loading server info', err, info);
-                }
-            });
-
             var server = restify.createServer({
                 name: "PieceMeta API Server",
                 version: require("./package.json").version,

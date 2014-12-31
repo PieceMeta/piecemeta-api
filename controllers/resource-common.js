@@ -41,8 +41,8 @@
                 var object = req.body;
                 object.user_uuid = req.user.uuid;
                 if (mongoose.model(config.resource).schema.path('namespace')) {
-                    var serverInfo = require('../lib/util/server-info');
-                    object.namespace = serverInfo.getServerInfo().uuid;
+                    var serverConfig = require('../lib/config');
+                    object.namespace = serverConfig.get.api_server.uuid;
                 }
                 mongoose.model(config.resource)
                     .create(req.body, function (err, data) {

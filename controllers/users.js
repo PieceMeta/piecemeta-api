@@ -39,7 +39,6 @@
                 } else {
                     var mailer = require('../lib/mailer/mailer');
                     mailer.sendConfirmationRequest(user, function (err, response) {
-                        // TODO: add a persisted queue to be able to retry failed mails
                         if (err) {
                             console.log('confirmation mail error', err, response);
                         }
