@@ -21,7 +21,12 @@
                         if (err) {
                             res.send(mongoHandler.handleError(err));
                         } else {
-                            res.send(200, data);
+                            if (data) {
+                                res.send(200, data);
+                            } else {
+                                var restify = require('restify');
+                                res.send(new restify.NotFoundError());
+                            }
                         }
                         next();
                     });
@@ -32,7 +37,12 @@
                         if (err) {
                             res.send(mongoHandler.handleError(err));
                         } else {
-                            res.send(200, data);
+                            if (data) {
+                                res.send(200, data);
+                            } else {
+                                var restify = require('restify');
+                                res.send(new restify.NotFoundError());
+                            }
                         }
                         next();
                     });
@@ -60,7 +70,12 @@
                         if (err) {
                             res.send(mongoHandler.handleError(err));
                         } else {
-                            res.send(200, data);
+                            if (data) {
+                                res.send(200, data);
+                            } else {
+                                var restify = require('restify');
+                                res.send(new restify.NotFoundError());
+                            }
                         }
                         next();
                     });
@@ -71,7 +86,12 @@
                         if (err) {
                             res.send(mongoHandler.handleError(err));
                         } else {
-                            res.send(200, data);
+                            if (data) {
+                                res.send(200, data);
+                            } else {
+                                var restify = require('restify');
+                                res.send(new restify.NotFoundError());
+                            }
                         }
                         next();
                     });
