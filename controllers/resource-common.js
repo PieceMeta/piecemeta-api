@@ -55,7 +55,7 @@
                     object.namespace = serverConfig.get.api_server.uuid;
                 }
                 mongoose.model(config.resource)
-                    .create(req.body, function (err, data) {
+                    .create(object, function (err, data) {
                         if (err) {
                             res.send(mongoHandler.handleError(err));
                         } else {

@@ -3,10 +3,10 @@
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
         PushSubscription = Schema({
-            api_server_uuid: { type: String, index: true, required: true },
-            api_key: String,
+            api_server: { type: [require('../../models/tracker/api-server').ApiServer], required: true },
+            api_key: { type: String, required: true },
+            api_secret: { type: String, required: true },
             access_token: String,
-            accepted: Boolean,
             last_updated: Date,
             last_status: Number,
             created: Date,
