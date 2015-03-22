@@ -98,7 +98,7 @@
         }
     ], function (err, server) {
         if (!err) {
-            server.listen(config.get.api_server.port, function () {
+            server.listen(config.get.api_server.port, config.get.api_server.host, function () {
                 console.log('%s listening at %s', server.name, server.url);
             });
         } else {

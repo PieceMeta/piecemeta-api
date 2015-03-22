@@ -36,7 +36,7 @@
 
     Package.methods.generateUUID = function () {
         var uuid = require('../lib/util/uuid');
-        this.uuid = uuid.v5(this.created + this.user_uuid, this.namespace);
+        this.uuid = uuid.v4();
     };
 
     Package.pre('save', function (next) {

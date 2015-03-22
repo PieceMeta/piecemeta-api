@@ -39,7 +39,7 @@
 
     Stream.methods.generateUUID = function () {
         var uuid = require('../lib/util/uuid');
-        this.uuid = uuid.v5(this.created + this.user_uuid, this.namespace);
+        this.uuid = uuid.v4();
     };
 
     Stream.pre('save', function (next) {
