@@ -3,7 +3,8 @@
 
     var users = require('./controllers/users'),
         access_tokens = require('./controllers/access-tokens'),
-        res = require('./controllers/resource-common');
+        res = require('./controllers/resource-common'),
+        exports = require('./controllers/exports');
 
     module.exports = function () {
         return {
@@ -59,6 +60,13 @@
                     overrideVerb: 'del',
                     scope: 'user',
                     cache_related: ['/collections']
+                }
+            },
+            '/exports/:uuid': {
+                'get': {
+                    controller: exports.get,
+                    scope: 'public',
+                    nocache: true
                 }
             },
             '/packages': {

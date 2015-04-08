@@ -27,6 +27,14 @@
         filterParams(ret);
     };
 
+    if (typeof Channel.options.toObject === 'undefined') {
+        Channel.options.toObject = {};
+    }
+
+    Channel.options.toObject.transform = function (doc, ret, options) {
+        filterParams(ret);
+    };
+
     Channel.methods.generateUUID = function () {
         var uuid = require('../lib/util/uuid');
         this.uuid = uuid.v4();

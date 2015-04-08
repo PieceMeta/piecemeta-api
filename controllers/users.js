@@ -37,6 +37,8 @@
                     res.send(mongoErr);
                     next();
                 } else {
+                    /*
+                    TODO: make confirmation optional
                     var mailer = require('../lib/mailer/mailer');
                     mailer.sendConfirmationRequest(user, function (err, response) {
                         if (err) {
@@ -44,6 +46,17 @@
                         }
                         res.send(201, user);
                         next(err);
+                    });
+                     */
+                    user.confirmUser(function (err) {
+                        if (err) {
+                            var mongoErr = mongoHandler.handleError(err);
+                            res.send(mongoErr);
+                            next();
+                        } else {
+                            res.send(201, user);
+                            next(err);
+                        }
                     });
                 }
             });
