@@ -97,11 +97,11 @@
                             cb(err, fileData);
                         });
                     }
-                ], function (err, fileData) {
+                ], function (err) {
                     if (err) {
                         res.send(mongoHandler.handleError(err));
                     } else {
-                        res.send(200, fileData);
+                        fs.createReadStream(filepath).pipe(res);
                     }
                 });
             }
