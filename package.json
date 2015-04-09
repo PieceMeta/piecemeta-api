@@ -11,7 +11,7 @@
     "babyparse": "^0.2.1",
     "js2xmlparser": "^0.1.5",
     "memcached": "^2.0.0",
-    "mongoose": "^3.8.14",
+    "mongoose": "3.8.14",
     "mongoose-unique-validator": "^0.3.0",
     "msgpack": "^0.2.4",
     "nodemailer": "^1.1.1",
