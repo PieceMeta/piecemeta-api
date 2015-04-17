@@ -4,6 +4,10 @@
 
 The PieceMeta API Server based on NodeJS / [restify](https://github.com/mcavage/node-restify) with MongoDB for storage. Check out the [API Documentation](http://doc.piecemeta.com) for more info on using it.
 
+## Stability
+
+Unstable: Expect patches and features, possible api changes.
+
 ## Setup
 
 ```bash

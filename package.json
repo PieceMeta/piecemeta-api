@@ -15,7 +15,7 @@
     "mongoose-unique-validator": "~0.4.1",
     "msgpack": "^0.2.4",
     "nodemailer": "^1.1.1",
-    "piecemeta-apiclient": "git://github.com/PieceMeta/node-piecemeta-apiclient.git#1.0.3",
+    "piecemeta-apiclient": "~1.0.3",
     "prompt": "^0.2.14",
     "request": "^2.51.0",
     "restify": "~3.0.2",
@@ -35,5 +35,6 @@
     "mocha-mongoose": "~1.0.4",
     "mongodb": "~1.4.35",
     "sinon": "^1.12.2"
-  }
+  },
+  "stability": "unstable"
 }
