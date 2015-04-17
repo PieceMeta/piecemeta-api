@@ -16,35 +16,5 @@
             id: false
         });
 
-    if (typeof PushSubscription.options.toJSON === 'undefined') {
-        PushSubscription.options.toJSON = {};
-    }
-
-    PushSubscription.options.toJSON.transform = function (doc, ret) {
-        filterParams(ret);
-    };
-
-    if (typeof PushSubscription.options.toObject === 'undefined') {
-        PushSubscription.options.toObject = {};
-    }
-
-    PushSubscription.options.toObject.transform = function (doc, ret) {
-        filterParams(ret);
-    };
-
-    PushSubscription.pre('save', function (next) {
-        var now = Date.now();
-        this.updated = now;
-        if (!this.created) {
-            this.created = now;
-        }
-        next();
-    });
-
-    function filterParams(obj) {
-        delete obj.__v;
-        delete obj._id;
-    }
-
-    module.exports.PushSubscription = PushSubscription;
+    module.exports.PushSubscription = require('../../lib/model-helper').setup(PushSubscription);
 }());

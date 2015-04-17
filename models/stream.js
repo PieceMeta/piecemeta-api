@@ -21,53 +21,12 @@
             id: false
         });
 
-    if (typeof Stream.options.toJSON === 'undefined') {
-        Stream.options.toJSON = {};
-    }
-
-    Stream.options.toJSON.transform = function (doc, ret) {
-        filterParams(ret);
-    };
-
-    if (typeof Stream.options.toObject === 'undefined') {
-        Stream.options.toObject = {};
-    }
-
-    Stream.options.toObject.transform = function (doc, ret) {
-        filterParams(ret);
-    };
-
-    Stream.methods.generateUUID = function () {
-        var uuid = require('../lib/util/uuid');
-        this.uuid = uuid.v4();
-    };
-
-    Stream.pre('save', function (next) {
-        var now = Date.now();
-        this.updated = now;
-        if (!this.created) {
-            this.created = now;
-        }
-        if (!this.uuid) {
-            this.generateUUID();
-        }
-        next();
-    });
-
-    Stream.path('title').set(function (val) {
-        var sanitizer = require('sanitizer');
-        return sanitizer.sanitize(val);
-    });
+    require('../lib/model-helper').setup(Stream);
 
     Stream.path('group').set(function (val) {
         var sanitizer = require('sanitizer');
         return sanitizer.sanitize(val);
     });
-
-    function filterParams(obj) {
-        delete obj.__v;
-        delete obj._id;
-    }
 
     module.exports.Stream = Stream;
 }());

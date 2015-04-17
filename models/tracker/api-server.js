@@ -16,36 +16,5 @@
             id: false
         });
 
-    if (typeof ApiServer.options.toJSON === 'undefined') {
-        ApiServer.options.toJSON = {};
-    }
-
-    ApiServer.options.toJSON.transform = function (doc, ret) {
-        filterParams(ret);
-        delete ret.scopes;
-    };
-
-    if (typeof ApiServer.options.toObject === 'undefined') {
-        ApiServer.options.toObject = {};
-    }
-
-    ApiServer.options.toObject.transform = function (doc, ret) {
-        filterParams(ret);
-    };
-
-    ApiServer.pre('save', function (next) {
-        var now = Date.now();
-        this.updated = now;
-        if (!this.created) {
-            this.created = now;
-        }
-        next();
-    });
-
-    function filterParams(obj) {
-        delete obj.__v;
-        delete obj._id;
-    }
-
-    module.exports.ApiServer = ApiServer;
+    module.exports.ApiServer = require('../../lib/model-helper').setup(ApiServer);
 }());

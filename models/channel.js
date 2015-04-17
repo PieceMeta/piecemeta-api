@@ -19,48 +19,5 @@
             id: false
         });
 
-    if (typeof Channel.options.toJSON === 'undefined') {
-        Channel.options.toJSON = {};
-    }
-
-    Channel.options.toJSON.transform = function (doc, ret) {
-        filterParams(ret);
-    };
-
-    if (typeof Channel.options.toObject === 'undefined') {
-        Channel.options.toObject = {};
-    }
-
-    Channel.options.toObject.transform = function (doc, ret) {
-        filterParams(ret);
-    };
-
-    Channel.methods.generateUUID = function () {
-        var uuid = require('../lib/util/uuid');
-        this.uuid = uuid.v4();
-    };
-
-    Channel.pre('save', function (next) {
-        var now = Date.now();
-        this.updated = now;
-        if (!this.created) {
-            this.created = now;
-        }
-        if (!this.uuid) {
-            this.generateUUID();
-        }
-        next();
-    });
-
-    Channel.path('title').set(function (val) {
-        var sanitizer = require('sanitizer');
-        return sanitizer.sanitize(val);
-    });
-
-    function filterParams(obj) {
-        delete obj.__v;
-        delete obj._id;
-    }
-
-    module.exports.Channel = Channel;
+    module.exports.Channel = require('../lib/model-helper').setup(Channel);
 }());
