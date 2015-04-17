@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        Tracker = Schema({
+        Tracker = new Schema({
             uuid: { type: String, unique: true },
             host: String,
             port: Number,
@@ -20,7 +20,7 @@
         Tracker.options.toJSON = {};
     }
 
-    Tracker.options.toJSON.transform = function (doc, ret, options) {
+    Tracker.options.toJSON.transform = function (doc, ret) {
         filterParams(ret);
         delete ret.scopes;
     };
@@ -29,7 +29,7 @@
         Tracker.options.toObject = {};
     }
 
-    Tracker.options.toObject.transform = function (doc, ret, options) {
+    Tracker.options.toObject.transform = function (doc, ret) {
         filterParams(ret);
     };
 

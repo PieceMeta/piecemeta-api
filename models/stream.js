@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        Stream = Schema({
+        Stream = new Schema({
 
             uuid: { type: String, unique: true },
             namespace: { type: String, required: true },
@@ -25,7 +25,7 @@
         Stream.options.toJSON = {};
     }
 
-    Stream.options.toJSON.transform = function (doc, ret, options) {
+    Stream.options.toJSON.transform = function (doc, ret) {
         filterParams(ret);
     };
 
@@ -33,7 +33,7 @@
         Stream.options.toObject = {};
     }
 
-    Stream.options.toObject.transform = function (doc, ret, options) {
+    Stream.options.toObject.transform = function (doc, ret) {
         filterParams(ret);
     };
 

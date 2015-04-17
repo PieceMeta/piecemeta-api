@@ -4,7 +4,7 @@
         validator = require('validator'),
         Schema = mongoose.Schema,
         uniqueValidator = require('mongoose-unique-validator'),
-        User = Schema({
+        User = new Schema({
 
             uuid: { type: String, unique: true },
             name: { type: String, required: true },
@@ -30,7 +30,7 @@
         User.options.toJSON = {};
     }
 
-    User.options.toJSON.transform = function (doc, ret, options) {
+    User.options.toJSON.transform = function (doc, ret) {
         filterParams(ret);
     };
 
@@ -38,7 +38,7 @@
         User.options.toObject = {};
     }
 
-    User.options.toObject.transform = function (doc, ret, options) {
+    User.options.toObject.transform = function (doc, ret) {
         filterParams(ret);
     };
 

@@ -2,7 +2,6 @@
     'use strict';
 
     var mongoose = require('mongoose'),
-        restify = require('restify'),
         msgpack = require('msgpack'),
         js2xmlparser = require("js2xmlparser"),
         fs = require('fs'),
@@ -10,7 +9,7 @@
         async = require('async'),
         mongoHandler = require('../lib/util/mongoose-response');
 
-    module.exports.get = function (req, res, next) {
+    module.exports.get = function (req, res) {
         var filepath,
             extensions = {
             'application/json': 'json',
@@ -82,7 +81,7 @@
                                         "[object Date]": function (date) {
                                             return date.toISOString();
                                         },
-                                        "[object Function]": function (func) {
+                                        "[object Function]": function () {
                                             return undefined;
                                         }
                                     }

@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        Collection = Schema({
+        Collection = new Schema({
 
             uuid: { type: String, unique: true },
             namespace: { type: String, required: true },
@@ -22,7 +22,7 @@
         Collection.options.toJSON = {};
     }
 
-    Collection.options.toJSON.transform = function (doc, ret, options) {
+    Collection.options.toJSON.transform = function (doc, ret) {
         filterParams(ret);
     };
 
@@ -30,7 +30,7 @@
         Collection.options.toObject = {};
     }
 
-    Collection.options.toObject.transform = function (doc, ret, options) {
+    Collection.options.toObject.transform = function (doc, ret) {
         filterParams(ret);
     };
 

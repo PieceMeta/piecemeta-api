@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        PushSubscription = Schema({
+        PushSubscription = new Schema({
             api_server: { type: [require('../../models/tracker/api-server').ApiServer], required: true },
             api_key: { type: String, required: true },
             api_secret: { type: String, required: true },
@@ -20,7 +20,7 @@
         PushSubscription.options.toJSON = {};
     }
 
-    PushSubscription.options.toJSON.transform = function (doc, ret, options) {
+    PushSubscription.options.toJSON.transform = function (doc, ret) {
         filterParams(ret);
     };
 
@@ -28,7 +28,7 @@
         PushSubscription.options.toObject = {};
     }
 
-    PushSubscription.options.toObject.transform = function (doc, ret, options) {
+    PushSubscription.options.toObject.transform = function (doc, ret) {
         filterParams(ret);
     };
 

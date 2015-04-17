@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        Package = Schema({
+        Package = new Schema({
 
             uuid: { type: String, unique: true },
             namespace: { type: String, required: true },
@@ -22,7 +22,7 @@
         Package.options.toJSON = {};
     }
 
-    Package.options.toJSON.transform = function (doc, ret, options) {
+    Package.options.toJSON.transform = function (doc, ret) {
         filterParams(ret);
     };
 
@@ -30,7 +30,7 @@
         Package.options.toObject = {};
     }
 
-    Package.options.toObject.transform = function (doc, ret, options) {
+    Package.options.toObject.transform = function (doc, ret) {
         filterParams(ret);
     };
 

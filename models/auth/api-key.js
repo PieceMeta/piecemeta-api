@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        ApiKey = Schema({
+        ApiKey = new Schema({
             user_uuid: String,
             device_uuid: String,
             key: String,
@@ -20,7 +20,7 @@
         ApiKey.options.toJSON = {};
     }
 
-    ApiKey.options.toJSON.transform = function (doc, ret, options) {
+    ApiKey.options.toJSON.transform = function (doc, ret) {
         filterParams(ret);
         delete ret.scopes;
     };
@@ -29,7 +29,7 @@
         ApiKey.options.toObject = {};
     }
 
-    ApiKey.options.toObject.transform = function (doc, ret, options) {
+    ApiKey.options.toObject.transform = function (doc, ret) {
         filterParams(ret);
     };
 

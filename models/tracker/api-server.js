@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        ApiServer = Schema({
+        ApiServer = new Schema({
             uuid: { type: String, unique: true },
             host: String,
             port: Number,
@@ -20,7 +20,7 @@
         ApiServer.options.toJSON = {};
     }
 
-    ApiServer.options.toJSON.transform = function (doc, ret, options) {
+    ApiServer.options.toJSON.transform = function (doc, ret) {
         filterParams(ret);
         delete ret.scopes;
     };
@@ -29,7 +29,7 @@
         ApiServer.options.toObject = {};
     }
 
-    ApiServer.options.toObject.transform = function (doc, ret, options) {
+    ApiServer.options.toObject.transform = function (doc, ret) {
         filterParams(ret);
     };
 

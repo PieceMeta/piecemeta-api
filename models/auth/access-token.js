@@ -2,7 +2,7 @@
     'use strict';
     var mongoose = require('mongoose'),
         Schema = mongoose.Schema,
-        AccessToken = Schema({
+        AccessToken = new Schema({
             api_key: { type: String, index: true, required: true },
             token: String,
             scopes: { type: [String], default: ['user'] },
@@ -17,7 +17,7 @@
         AccessToken.options.toJSON = {};
     }
 
-    AccessToken.options.toJSON.transform = function (doc, ret, options) {
+    AccessToken.options.toJSON.transform = function (doc, ret) {
         filterParams(ret);
     };
 
@@ -25,7 +25,7 @@
         AccessToken.options.toObject = {};
     }
 
-    AccessToken.options.toObject.transform = function (doc, ret, options) {
+    AccessToken.options.toObject.transform = function (doc, ret) {
         filterParams(ret);
     };
 
