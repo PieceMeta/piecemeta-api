@@ -104,7 +104,7 @@
             },
             '/channels/:uuid/streams': {
                 'get': {
-                    controller: res({ resource: 'Stream', query: { id_mapping: 'channel_uuid' } }).find,
+                    controller: res({ resource: 'Stream', query: { id_mapping: 'channel_uuid' }, select: '-frames' }).find,
                     scope: 'public'
                 }
             },
@@ -162,6 +162,18 @@
                 'post': {
                     controller: res({ resource: 'Stream' }).post,
                     scope: 'user'
+                }
+            },
+            '/streams/:uuid/frames': {
+                'get': {
+                    controller: res({resource: 'Stream', select: 'frames'}).get,
+                    scope: 'public'
+                }
+            },
+            '/streams/:uuid/meta': {
+                'get': {
+                    controller: res({resource: 'Stream', select: '-frames'}).get,
+                    scope: 'public'
                 }
             },
             '/streams/:uuid': {

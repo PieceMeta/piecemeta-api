@@ -16,36 +16,42 @@
                         query[config.query.user_mapping] = req.user.uuid;
                     }
                 }
-                mongoose.model(config.resource).find(query)
-                    .exec(function (err, data) {
-                        if (err) {
-                            res.send(mongoHandler.handleError(err));
+                var q = mongoose.model(config.resource).find(query);
+                if (typeof config.select === 'string') {
+                    q = q.select(config.select);
+                }
+                q.exec(function (err, data) {
+                    if (err) {
+                        res.send(mongoHandler.handleError(err));
+                    } else {
+                        if (data) {
+                            res.send(200, data);
                         } else {
-                            if (data) {
-                                res.send(200, data);
-                            } else {
-                                var restify = require('restify');
-                                res.send(new restify.NotFoundError());
-                            }
+                            var restify = require('restify');
+                            res.send(new restify.NotFoundError());
                         }
-                        next();
-                    });
+                    }
+                    next();
+                });
             },
             get: function (req, res, next) {
-                mongoose.model(config.resource).findOne({ uuid: req.params.uuid })
-                    .exec(function (err, data) {
-                        if (err) {
-                            res.send(mongoHandler.handleError(err));
+                var q = mongoose.model(config.resource).findOne({uuid: req.params.uuid});
+                if (typeof config.select === 'string') {
+                    q = q.select(config.select);
+                }
+                q.exec(function (err, data) {
+                    if (err) {
+                        res.send(mongoHandler.handleError(err));
+                    } else {
+                        if (data) {
+                            res.send(200, data);
                         } else {
-                            if (data) {
-                                res.send(200, data);
-                            } else {
-                                var restify = require('restify');
-                                res.send(new restify.NotFoundError());
-                            }
+                            var restify = require('restify');
+                            res.send(new restify.NotFoundError());
                         }
-                        next();
-                    });
+                    }
+                    next();
+                });
             },
             post: function (req, res, next) {
                 var object = req.body;
