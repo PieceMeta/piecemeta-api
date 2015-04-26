@@ -33,6 +33,13 @@
                                 for (var i in data) {
                                     if (typeof data[i] === 'object') {
                                         var label = (data[i].group ? data[i].group + '.' : '') + data[i].title;
+                                        if (req.query.skip && req.query.skip <= data[i].frames.length && parseInt(req.query.skip) > 1) {
+                                            var frames = [];
+                                            for (var q = 0; q < data[i].frames.length; q += parseInt(req.query.skip)) {
+                                                frames.push(data[i].frames[q]);
+                                            }
+                                            data[i].frames = frames;
+                                        }
                                         if (data[i].frames.length > maxlen) {
                                             maxlen = data[i].frames.length;
                                         }
