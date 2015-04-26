@@ -7,6 +7,7 @@
         urlExtParser = require('./lib/parsers/pre/urlext-parser'),
         bodyParser = require('./lib/parsers/body-parser'),
         xmlFormatter = require('./lib/formatters/xml-formatter'),
+        csvFormatter = require('./lib/formatters/csv-formatter'),
         tokenAuth = require('./lib/auth/token-auth'),
         routeAuth = require('./lib/auth/route-auth'),
         memcache = require('./lib/memcached'),
@@ -61,6 +62,9 @@
                     },
                     'application/xml': function formatXml(req, res, body) {
                         return xmlFormatter(req, res, body);
+                    },
+                    'text/csv': function formatCsv(req, res, body) {
+                        return csvFormatter(req, res, body);
                     }
                 }
             });

@@ -105,7 +105,7 @@
             },
             '/channels/:uuid/streams': {
                 'get': {
-                    controller: res({ resource: 'Stream', query: { id_mapping: 'channel_uuid' }, select: '-frames' }).find,
+                    controller: streams({ resource: 'Stream', query: { id_mapping: 'channel_uuid' }, select: '-frames' }).find,
                     scope: 'public'
                 }
             },
@@ -167,7 +167,7 @@
             },
             '/streams/:uuid/frames': {
                 'get': {
-                    controller: streams({select: 'uuid channel_uuid user_uuid frames'}).get,
+                    controller: streams({select: 'uuid channel_uuid user_uuid frames frameCount'}).get,
                     scope: 'public'
                 }
             },

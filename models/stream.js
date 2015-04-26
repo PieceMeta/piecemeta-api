@@ -11,6 +11,7 @@
             title: { type: String, required: true },
             group: { type: String },
             frames: [Number],
+            frameCount: Number,
             fps: Number,
 
             created: Date,
@@ -21,7 +22,25 @@
             id: false
         });
 
-    require('../lib/model-helper').setup(Stream);
+    require('../lib/model-helper').setup(Stream, function (next) {
+        var now = Date.now(),
+            sanitizer = require('sanitizer');
+        if (typeof this.title !== 'undefined') {
+            this.title = sanitizer.sanitize(this.title);
+        }
+        if (typeof this.description !== 'undefined') {
+            this.description = sanitizer.sanitize(this.description);
+        }
+        this.updated = now;
+        if (!this.created) {
+            this.created = now;
+        }
+        if (!this.uuid) {
+            this.generateUUID();
+        }
+        this.frameCount = 666;//this.frames.length;
+        next();
+    });
 
     Stream.path('group').set(function (val) {
         var sanitizer = require('sanitizer');

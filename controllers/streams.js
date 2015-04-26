@@ -6,6 +6,65 @@
 
     module.exports = function (config) {
         return {
+            find: function (req, res, next) {
+                var query = {};
+                if (typeof config.query === 'object') {
+                    if (typeof config.query.id_mapping === 'string') {
+                        query[config.query.id_mapping] = req.params.uuid;
+                    }
+                    if (typeof config.query.user_mapping === 'string') {
+                        query[config.query.user_mapping] = req.user.uuid;
+                    }
+                }
+                var q = mongoose.model(config.resource).find(query);
+                if (req.contentType() === 'text/csv') {
+                    q = q.select('title group frames');
+                } else if (typeof config.select === 'string') {
+                    q = q.select(config.select);
+                }
+                q.exec(function (err, data) {
+                    if (err) {
+                        res.send(mongoHandler.handleError(err));
+                    } else {
+                        if (data) {
+                            if (req.contentType() === 'text/csv') {
+                                var labels = [];
+                                var maxlen = 0;
+                                for (var i in data) {
+                                    if (typeof data[i] === 'object') {
+                                        var label = (data[i].group ? data[i].group + '.' : '') + data[i].title;
+                                        if (data[i].frames.length > maxlen) {
+                                            maxlen = data[i].frames.length;
+                                        }
+                                        labels.push(label);
+                                    }
+                                }
+                                var values = [];
+                                for (var n = 0; n < maxlen; n += 1) {
+                                    var row = [];
+                                    for (i in data) {
+                                        if (typeof data[i] === 'object') {
+                                            if (typeof data[i].frames[n] !== 'undefined') {
+                                                row.push(data[i].frames[n]);
+                                            } else {
+                                                row.push('');
+                                            }
+                                        }
+                                    }
+                                    values.push(row);
+                                }
+                                data = [labels].concat(values);
+                            }
+                            console.log(data);
+                            res.send(200, data);
+                        } else {
+                            var restify = require('restify');
+                            res.send(new restify.NotFoundError());
+                        }
+                    }
+                    next();
+                });
+            },
             get: function (req, res, next) {
                 var q = mongoose.model('Stream').findOne({uuid: req.params.uuid});
                 if (typeof config.select === 'string') {
