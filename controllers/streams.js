@@ -55,7 +55,6 @@
                                 }
                                 data = [labels].concat(values);
                             }
-                            console.log(data);
                             res.send(200, data);
                         } else {
                             var restify = require('restify');

@@ -38,7 +38,7 @@
         if (!this.uuid) {
             this.generateUUID();
         }
-        this.frameCount = 666;//this.frames.length;
+        this.frameCount = this.frames.length;
         next();
     });
 
