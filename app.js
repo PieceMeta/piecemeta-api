@@ -82,6 +82,7 @@
             server.use(tokenAuth());
             server.use(routeAuth());
             server.use(bodyParser());
+            server.use(restify.queryParser());
 
             for (var path in routes) {
                 if (typeof routes[path] === 'object') {

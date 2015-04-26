@@ -4,6 +4,7 @@
     var users = require('./controllers/users'),
         access_tokens = require('./controllers/access-tokens'),
         res = require('./controllers/resource-common'),
+        streams = require('./controllers/streams'),
         exports = require('./controllers/exports');
 
     module.exports = function () {
@@ -166,7 +167,7 @@
             },
             '/streams/:uuid/frames': {
                 'get': {
-                    controller: res({resource: 'Stream', select: 'frames'}).get,
+                    controller: streams({select: 'uuid channel_uuid user_uuid frames'}).get,
                     scope: 'public'
                 }
             },
@@ -178,7 +179,7 @@
             },
             '/streams/:uuid': {
                 'get': {
-                    controller: res({ resource: 'Stream' }).get,
+                    controller: streams({}).get,
                     scope: 'public'
                 },
                 'put': {
