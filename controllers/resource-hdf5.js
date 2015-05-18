@@ -15,14 +15,7 @@
             find: function (req, res, next) {
                 var query = {};
                 var path = require('path');
-                if (typeof config.query === 'object') {
-                    if (typeof config.query.id_mapping === 'string') {
-                        query[config.query.id_mapping] = req.params.uuid;
-                    }
-                    if (typeof config.query.user_mapping === 'string') {
-                        query[config.query.user_mapping] = req.user.uuid;
-                    }
-                }
+                query = require('../lib/util/query-mapping')(query, req, config);
                 var filterAsync = Promise.promisify(fileDb(config.storage_path).filter);
                 var hdf5Access = require('../lib/util/hdf5-access');
                 var getTreeAsync = Promise.promisify(hdf5Access.getTree);

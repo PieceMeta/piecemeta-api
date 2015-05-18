@@ -8,14 +8,7 @@
         return {
             find: function (req, res, next) {
                 var query = {};
-                if (typeof config.query === 'object') {
-                    if (typeof config.query.id_mapping === 'string') {
-                        query[config.query.id_mapping] = req.params.uuid;
-                    }
-                    if (typeof config.query.user_mapping === 'string') {
-                        query[config.query.user_mapping] = req.user.uuid;
-                    }
-                }
+                query = require('../lib/util/query-mapping')(query, req, config);
                 var q = mongoose.model(config.resource).find(query);
                 if (typeof config.select === 'string') {
                     q = q.select(config.select);
