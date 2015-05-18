@@ -4,10 +4,14 @@
     var users = require('./controllers/users'),
         access_tokens = require('./controllers/access-tokens'),
         res = require('./controllers/resource-common'),
+        hdf5res = require('./controllers/resource-hdf5'),
         streams = require('./controllers/streams'),
         exports = require('./controllers/exports');
 
-    module.exports = function () {
+    module.exports = function (config) {
+        if (typeof config !== 'object') {
+            config = {get: {}};
+        }
         return {
             '/api_servers': {
                 'get': {
@@ -72,7 +76,7 @@
             },
             '/packages': {
                 'get': {
-                    controller: res({ resource: 'Package' }).find,
+                    controller: hdf5res(config.get.hdf5).find,
                     scope: 'public'
                 },
                 'post': {

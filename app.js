@@ -12,12 +12,15 @@
         routeAuth = require('./lib/auth/route-auth'),
         memcache = require('./lib/memcached'),
         config = require('./lib/config'),
-        async = require('async'),
-        routes = require('./routes')();
+        async = require('async');
 
     async.waterfall([
         function (cb) {
             config.load(cb);
+        },
+        function (cb) {
+            var fileDb = require('./lib/util/filedb');
+            fileDb(config.get.hdf5.storage_path).init(cb);
         },
         function (cb) {
             if (config.get) {
@@ -26,10 +29,6 @@
                     config.get.mongodb.port + '/' +
                     config.get.mongodb.dbname;
                 mongoose.connect(dburl);
-                mongoose.model('Collection', require('./models/collection').Collection);
-                mongoose.model('Package', require('./models/package').Package);
-                mongoose.model('Channel', require('./models/channel').Channel);
-                mongoose.model('Stream', require('./models/stream').Stream);
                 mongoose.model('User', require('./models/auth/user').User);
                 mongoose.model('ApiKey', require('./models/auth/api-key').ApiKey);
                 mongoose.model('AccessToken', require('./models/auth/access-token').AccessToken);
@@ -40,18 +39,8 @@
             } else {
                 cb(new Error('Server has not been configured yet. Please run bin/setup.'));
             }
-        }, function (cb) {
-            /*
-            var workerFarm = require('worker-farm'),
-                workers = workerFarm(require.resolve('./workers/update'));
-            setInterval(function () {
-                workers(function (err, pid) {
-                    console.log('update job finished', err, pid);
-                });
-            },10*1000);
-            */
-            cb(null);
-        }, function (cb) {
+        },
+        function (cb) {
             var server = restify.createServer({
                 name: "PieceMeta API Server",
                 version: require("./package.json").version,
@@ -87,6 +76,8 @@
             server.use(routeAuth());
             server.use(bodyParser());
             server.use(restify.queryParser());
+
+            var routes = require('./routes')(config);
 
             for (var path in routes) {
                 if (typeof routes[path] === 'object') {
