@@ -17,4 +17,4 @@ export DYLD_LIBRARY_PATH=$HDF5_HOME/lib:$DYLD_LIBRARY_PATH
 #
 # Run API server
 
-node ./app.js
+node --harmony ./app.js

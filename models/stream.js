@@ -22,7 +22,7 @@
             id: false
         });
 
-    require('../lib/model-helper').setup(Stream, function (next) {
+    require('../lib/util/model-helper').setup(Stream, function (next) {
         var now = Date.now(),
             sanitizer = require('sanitizer');
         if (typeof this.title !== 'undefined') {

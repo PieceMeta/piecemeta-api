@@ -4,7 +4,7 @@
     var restify = require('restify'),
         mongoose = require('mongoose'),
         preflightEnabler = require('se7ensky-restify-preflight'),
-        urlExtParser = require('./lib/parsers/pre/urlext-parser'),
+        urlExtParser = require('./lib/parsers/urlext-parser'),
         bodyParser = require('./lib/parsers/body-parser'),
         xmlFormatter = require('./lib/formatters/xml-formatter'),
         csvFormatter = require('./lib/formatters/csv-formatter'),
@@ -19,7 +19,7 @@
             config.load(cb);
         },
         function (cb) {
-            var fileDb = require('./lib/util/filedb');
+            var fileDb = require('./lib/hdf5/filedb');
             fileDb(config.get.hdf5.storage_path).init(cb);
         },
         function (cb) {
@@ -32,9 +32,6 @@
                 mongoose.model('User', require('./models/auth/user').User);
                 mongoose.model('ApiKey', require('./models/auth/api-key').ApiKey);
                 mongoose.model('AccessToken', require('./models/auth/access-token').AccessToken);
-                mongoose.model('ApiServer', require('./models/tracker/api-server').ApiServer);
-                mongoose.model('Tracker', require('./models/tracker/tracker').Tracker);
-                mongoose.model('PushSubscription', require('./models/tracker/push-subscription').PushSubscription);
                 cb(null);
             } else {
                 cb(new Error('Server has not been configured yet. Please run bin/setup.'));

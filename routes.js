@@ -13,60 +13,6 @@
             config = {get: {}};
         }
         return {
-            '/api_servers': {
-                'get': {
-                    controller: res({ resource: 'ApiServer' }).find,
-                    scope: 'admin'
-                },
-                'post': {
-                    controller: res({ resource: 'ApiServer' }).post,
-                    scope: 'admin'
-                }
-            },
-            '/api_servers/:uuid': {
-                'get': {
-                    controller: res({ resource: 'ApiServer' }).get,
-                    scope: 'admin'
-                },
-                'put': {
-                    controller: res({ resource: 'ApiServer' }).put,
-                    scope: 'admin',
-                    cache_related: ['/api_servers']
-                },
-                'delete': {
-                    controller: res({ resource: 'ApiServer' }).del,
-                    overrideVerb: 'del',
-                    scope: 'admin',
-                    cache_related: ['/api_servers']
-                }
-            },
-            '/collections': {
-                'get': {
-                    controller: res({ resource: 'Collection' }).find,
-                    scope: 'public'
-                },
-                'post': {
-                    controller: res({ resource: 'Collection' }).post,
-                    scope: 'user'
-                }
-            },
-            '/collections/:uuid': {
-                'get': {
-                    controller: res({ resource: 'Collection' }).get,
-                    scope: 'public'
-                },
-                'put': {
-                    controller: res({ resource: 'Collection' }).put,
-                    scope: 'user',
-                    cache_related: ['/collections']
-                },
-                'delete': {
-                    controller: res({ resource: 'Collection' }).del,
-                    overrideVerb: 'del',
-                    scope: 'user',
-                    cache_related: ['/collections']
-                }
-            },
             '/exports/:uuid': {
                 'get': {
                     controller: exports.get,
@@ -80,7 +26,7 @@
                     scope: 'public'
                 },
                 'post': {
-                    controller: res({ resource: 'Package' }).post,
+                    controller: hdf5res(config.get.hdf5).post,
                     scope: 'user'
                 }
             },
@@ -136,33 +82,6 @@
                     cache_related: ['/packages/:uuid/channels']
                 }
             },
-            '/push_subscriptions': {
-                'get': {
-                    controller: res({ resource: 'PushSubscription' }).find,
-                    scope: 'admin'
-                },
-                'post': {
-                    controller: res({ resource: 'PushSubscription' }).post,
-                    scope: 'admin'
-                }
-            },
-            '/push_subscriptions/:uuid': {
-                'get': {
-                    controller: res({ resource: 'PushSubscription' }).get,
-                    scope: 'admin'
-                },
-                'put': {
-                    controller: res({ resource: 'PushSubscription' }).put,
-                    scope: 'admin',
-                    cache_related: ['/push_subscriptions']
-                },
-                'delete': {
-                    controller: res({ resource: 'PushSubscription' }).del,
-                    overrideVerb: 'del',
-                    scope: 'admin',
-                    cache_related: ['/push_subscriptions']
-                }
-            },
             '/streams': {
                 'post': {
                     controller: res({ resource: 'Stream' }).post,
@@ -198,33 +117,6 @@
                     cache_related: ['/channels/:uuid/streams']
                 }
             },
-            '/trackers': {
-                'get': {
-                    controller: res({ resource: 'Tracker' }).find,
-                    scope: 'admin'
-                },
-                'post': {
-                    controller: res({ resource: 'Tracker' }).post,
-                    scope: 'admin'
-                }
-            },
-            '/trackers/:uuid': {
-                'get': {
-                    controller: res({ resource: 'Tracker' }).get,
-                    scope: 'admin'
-                },
-                'put': {
-                    controller: res({ resource: 'Tracker' }).put,
-                    scope: 'admin',
-                    cache_related: ['/trackers']
-                },
-                'delete': {
-                    controller: res({ resource: 'Tracker' }).del,
-                    overrideVerb: 'del',
-                    scope: 'admin',
-                    cache_related: ['/trackers']
-                }
-            },
             '/users': {
                 'post': {
                     controller: users.post,
@@ -258,7 +150,6 @@
                     scope: 'user'
                 }
             }
-
         };
     };
 

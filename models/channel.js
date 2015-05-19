@@ -19,5 +19,5 @@
             id: false
         });
 
-    module.exports.Channel = require('../lib/model-helper').setup(Channel);
+    module.exports.Channel = require('../lib/util/model-helper').setup(Channel);
 }());
