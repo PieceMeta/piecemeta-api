@@ -28,7 +28,7 @@
     "secure-random": "~1.1.1",
     "sha1": "~1.1.0",
     "validator": "^3.37.0",
-    "worker-farm": "^1.1.0",
+    "worker-farm": "^1.3.0",
     "xml2js": "^0.4.4",
     "xmlbuilder": "^2.4.4"
   },
