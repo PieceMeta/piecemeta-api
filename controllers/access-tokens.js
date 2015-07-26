@@ -85,7 +85,7 @@ module.exports.post = function (req, res, next) {
             if (!api_key) {
                 cb(new restify.InvalidCredentialsError(), null, null);
             } else {
-                mongoose.model('AccessToken').find({ api_key: api_key.key }).sort('-issued').exec(function (err, access_token) {
+                mongoose.model('AccessToken').findOne({ api_key: api_key.key }).sort('-issued').exec(function (err, access_token) {
                     if (err) {
                         cb(mongoHandler.handleError(err), null, null);
                     } else {
@@ -95,7 +95,7 @@ module.exports.post = function (req, res, next) {
             }
         },
         function (api_key, access_token, cb) {
-            if (access_token && access_token.isValid) {
+            if (access_token && access_token.isValid()) {
                 cb(null, access_token);
             } else {
                 mongoose.model('AccessToken').create({ api_key: api_key.key }, function (err, access_token) {

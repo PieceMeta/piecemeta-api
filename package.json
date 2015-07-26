@@ -11,8 +11,6 @@
     "babyparse": "~0.4.3",
     "bluebird": "^2.9.25",
     "co": "^4.5.4",
-    "fs-extra": "^0.18.3",
-    "hdf5": "^0.0.17",
     "js2xmlparser": "^0.1.5",
     "memcached": "^2.0.0",
     "mongoose": "4.0.1",
@@ -28,7 +26,6 @@
     "secure-random": "~1.1.1",
     "sha1": "~1.1.0",
     "validator": "^3.37.0",
-    "worker-farm": "^1.3.0",
     "xml2js": "^0.4.4",
     "xmlbuilder": "^2.4.4"
   },

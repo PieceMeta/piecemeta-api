@@ -1,6 +1,5 @@
 .idea/
 node_modules/
 config.json
-db/*
 cache/*
 !.gitkeep

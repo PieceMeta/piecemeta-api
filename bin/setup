@@ -37,7 +37,7 @@ async.waterfall([
 
 function initialSetup(callback) {
     var config = {
-        hdf5: null,
+        hypertable: null,
         api_server: null,
         mongodb: null,
         mailer: null
@@ -93,45 +93,28 @@ function initialSetup(callback) {
             });
         },
         function (cb) {
-            console.log('\nHDF5\n'.cyan);
-            var path = require('path');
+            console.log('\nHYPERTABLE\n'.cyan);
             prompt.get({
                 properties: {
-                    storage_path: {
-                        description: 'Enter the path to the HDF5 file storage',
+                    host: {
+                        description: 'Enter the Hypertable host',
                         type: 'string',
-                        default: path.resolve('./db'),
+                        default: 'localhost',
+                        required: true
+                    },
+                    port: {
+                        description: 'Enter the Hypertable port',
+                        type: 'number',
+                        default: 15867,
                         required: true
                     }
                 }
             }, function (err, data) {
                 if (data) {
-                    config.hdf5.storage_path = data.storage_path;
+                    config.hypertable = data;
                 }
                 cb(err);
             });
-        },
-        function (cb) {
-            var fs = require('fs'),
-                path = require('path');
-            fs.exists(path.resolve(config.hdf5.storage_path), function (exists) {
-                if (exists) {
-                    fs.stats(path.resolve(config.hdf5.storage_path), function (err, stats) {
-                        cb(err, stats ? stats.isDirectory() : false);
-                    });
-                } else {
-                    cb(null, false);
-                }
-            });
-        },
-        function (exists, cb) {
-            var fs = require('fs-extra'),
-                path = require('path');
-            if (exists) {
-                cb(null);
-            } else {
-                fs.mkdirs(path.resolve(config.hdf5.storage_path), cb);
-            }
         },
         function (cb) {
             console.log('\nMONGODB\n'.cyan);
@@ -268,7 +251,7 @@ function createAdminUser(callback) {
         },
         function (data, config, cb) {
             mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.dbname);
-            mongoose.model('User', require('../models/mongoose/user').User);
+            mongoose.model('User', require('../models/user').User);
             var user = {
                 name: data.name,
                 email: data.email,
@@ -280,7 +263,7 @@ function createAdminUser(callback) {
         },
         function (user, cb) {
             console.log(user);
-            mongoose.model('ApiKey', require('../models/mongoose/api-key').ApiKey);
+            mongoose.model('ApiKey', require('../models/api-key').ApiKey);
             mongoose.model('ApiKey').create({user_uuid: user.uuid, scopes: ['user', 'admin']}, cb);
         }
     ], function (err, apikey) {

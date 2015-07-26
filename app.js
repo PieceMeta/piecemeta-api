@@ -10,15 +10,11 @@ var restify = require('restify'),
     csvFormatter = require('./lib/formatters/csv-formatter'),
     tokenAuth = require('./lib/auth/token-auth'),
     routeAuth = require('./lib/auth/route-auth'),
-    workerQueue = require('./lib/worker-queue'),
     config = require('./lib/config'),
+    htClient = require('./lib/ht-client'),
     Promise = require('bluebird');
 
 Promise.promisify(config.load)()
-    .then(function () {
-        var fileDb = require('./lib/hdf5/file-manager');
-        return fileDb(config.get.hdf5.storage_path).init();
-    })
     .then(function () {
         if (config.get) {
             var dburl = 'mongodb://' +
@@ -26,15 +22,17 @@ Promise.promisify(config.load)()
                 config.get.mongodb.port + '/' +
                 config.get.mongodb.dbname;
             mongoose.connect(dburl);
-            mongoose.model('User', require('./models/mongoose/user').User);
-            mongoose.model('ApiKey', require('./models/mongoose/api-key').ApiKey);
-            mongoose.model('AccessToken', require('./models/mongoose/access-token').AccessToken);
-            mongoose.model('PackageIndex', require('./models/mongoose/package-index').PackageIndex);
+            mongoose.model('User', require('./models/user').User);
+            mongoose.model('ApiKey', require('./models/api-key').ApiKey);
+            mongoose.model('AccessToken', require('./models/access-token').AccessToken);
+            mongoose.model('Channel', require('./models/channel').Channel);
+            mongoose.model('Package', require('./models/package').Package);
+            mongoose.model('Stream', require('./models/stream').Stream);
+
+            htClient.connect(config.get.hypertable.host, config.get.hypertable.port);
         } else {
             throw new Error('Server has not been configured yet. Please run bin/setup.');
         }
-
-        workerQueue.updatePackageIndex(config.get);
 
         var server = restify.createServer({
             name: "PieceMeta API Server",

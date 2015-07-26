@@ -2,19 +2,10 @@
 
 #
 #
-# Set environment vars for hdf5 module
+# Set environment vars for hypertable node api
 
-# location of hdf5 install
-export HDF5_HOME=/usr/local
-# location of node install
-export NODE_HOME=/usr/local
-# library path for linux
-# export LD_LIBRARY_PATH=$HDF5_HOME/lib:$LD_LIBRARY_PATH
-# library path for osx
-export DYLD_LIBRARY_PATH=$HDF5_HOME/lib:$DYLD_LIBRARY_PATH
+#!/bin/bash
 
-#
-#
-# Run API server
+HYPERTABLE_HOME=/opt/hypertable/current
 
-node --harmony ./app.js
+env NODE_PATH=$HYPERTABLE_HOME/lib/js/node/node_modules node --harmony ./app.js

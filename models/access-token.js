@@ -37,7 +37,7 @@ AccessToken.pre('save', function (next) {
 });
 
 AccessToken.methods.isValid = function () {
-    var expiration = Date.now();
+    var expiration = new Date();
     expiration.setHours(expiration.getHours() + this.hours_valid);
     return this.issued < expiration;
 };

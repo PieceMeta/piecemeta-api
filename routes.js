@@ -4,7 +4,6 @@
     var users = require('./controllers/users'),
         access_tokens = require('./controllers/access-tokens'),
         res = require('./controllers/resource-common'),
-        hdf5res = require('./controllers/resource-hdf5'),
         streams = require('./controllers/streams'),
         exports = require('./controllers/exports');
 
@@ -22,66 +21,73 @@
             },
             '/packages': {
                 'get': {
-                    controller: hdf5res({system: config.get, query: {}}, require('./models/hdf5/package')).find,
+                    controller: res({resource: 'Package'}).find,
                     scope: 'public'
                 },
                 'post': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/package')).post,
+                    controller: res({resource: 'Package'}).post,
                     scope: 'user'
                 }
             },
             '/packages/:uuid': {
                 'get': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/package')).get,
+                    controller: res({resource: 'Package'}).get,
                     scope: 'public'
                 },
                 'put': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/package')).put,
+                    controller: res({resource: 'Package'}).put,
                     scope: 'user',
                     cache_related: ['/packages']
                 },
                 'delete': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/package')).del,
+                    controller: res({resource: 'Package'}).del,
                     overrideVerb: 'del',
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/packages']
                 }
             },
             '/packages/:uuid/channels': {
                 'get': {
-                    controller: hdf5res({system: config.get, query: {id_mapping: 'package_uuid'}}, require('./models/hdf5/channel')).find,
+                    controller: res({resource: 'Channel', query: {id_mapping: 'package_uuid'}}).find,
                     scope: 'public'
                 }
             },
             '/channels/:uuid/streams': {
                 'get': {
-                    controller: hdf5res({system: config.get, query: {id_mapping: 'package_uuid'}}, require('./models/hdf5/stream')).find,
+                    controller: streams({
+                        resource: 'Stream',
+                        query: {id_mapping: 'channel_uuid'},
+                        select: '-frames'
+                    }).find,
                     scope: 'public'
                 }
             },
             '/channels': {
                 'post': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/channel')).post,
+                    controller: res({resource: 'Channel'}).post,
                     scope: 'user'
                 }
             },
             '/channels/:uuid': {
                 'get': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/channel')).get,
+                    controller: res({resource: 'Channel'}).get,
                     scope: 'public'
                 },
                 'put': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/channel')).put,
-                    scope: 'user'
+                    controller: res({resource: 'Channel'}).put,
+                    scope: 'user',
+                    cache_related: ['/packages/:uuid/channels']
                 },
                 'delete': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/channel')).del,
+                    controller: res({resource: 'Channel'}).del,
                     overrideVerb: 'del',
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/packages/:uuid/channels']
                 }
             },
             '/streams': {
                 'post': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/stream')).post,
+                    controller: streams({}).post,
                     scope: 'user'
                 }
             },
@@ -99,17 +105,19 @@
             },
             '/streams/:uuid': {
                 'get': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/stream')).get,
+                    controller: streams({}).get,
                     scope: 'public'
                 },
                 'put': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/stream')).put,
-                    scope: 'user'
+                    controller: res({resource: 'Stream'}).put,
+                    scope: 'user',
+                    cache_related: ['/channels/:uuid/streams']
                 },
                 'delete': {
-                    controller: hdf5res({system: config.get}, require('./models/hdf5/stream')).del,
+                    controller: res({resource: 'Stream'}).del,
                     overrideVerb: 'del',
-                    scope: 'user'
+                    scope: 'user',
+                    cache_related: ['/channels/:uuid/streams']
                 }
             },
             '/users': {

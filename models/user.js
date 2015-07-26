@@ -132,7 +132,7 @@ User.methods.confirmUser = function (callback) {
 
 User.methods.generateUUID = function () {
     if (this.email) {
-        var uuid = require('../../lib/util/uuid');
+        var uuid = require('../lib/util/uuid');
         this.uuid = uuid.v5(this.email);
     }
 };
