@@ -12,6 +12,7 @@ var mongoose = require('mongoose'),
         group: {type: String},
         frameCount: Number,
         labels: [String],
+        format: String,
         fps: Number,
 
         created: Date,
@@ -34,6 +35,9 @@ require('../lib/util/model-helper').setup(Stream, function (next) {
     this.updated = now;
     if (!this.created) {
         this.created = now;
+    }
+    if (!this.format) {
+        this.format = 'float';
     }
     if (!this.uuid) {
         this.generateUUID();

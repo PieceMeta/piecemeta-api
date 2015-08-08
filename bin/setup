@@ -3,6 +3,7 @@
 'use strict';
 
 var async = require('async'),
+    path = require('path'),
     prompt = require('prompt');
 
 prompt.message = "";
@@ -37,7 +38,7 @@ async.waterfall([
 
 function initialSetup(callback) {
     var config = {
-        hypertable: null,
+        lmdb: null,
         api_server: null,
         mongodb: null,
         mailer: null
@@ -93,30 +94,6 @@ function initialSetup(callback) {
             });
         },
         function (cb) {
-            console.log('\nHYPERTABLE\n'.cyan);
-            prompt.get({
-                properties: {
-                    host: {
-                        description: 'Enter the Hypertable host',
-                        type: 'string',
-                        default: 'localhost',
-                        required: true
-                    },
-                    port: {
-                        description: 'Enter the Hypertable port',
-                        type: 'number',
-                        default: 15867,
-                        required: true
-                    }
-                }
-            }, function (err, data) {
-                if (data) {
-                    config.hypertable = data;
-                }
-                cb(err);
-            });
-        },
-        function (cb) {
             console.log('\nMONGODB\n'.cyan);
             prompt.get({
                 properties: {
@@ -153,6 +130,40 @@ function initialSetup(callback) {
             }, function (err, data) {
                 if (data) {
                     config.mongodb = data;
+                }
+                cb(err);
+            });
+        },
+        function (cb) {
+            console.log('\nLMDB\n'.cyan);
+            prompt.get({
+                properties: {
+                    path: {
+                        description: 'Enter the LMDB data path',
+                        type: 'string',
+                        default: path.resolve('../lmdb'),
+                        required: true
+                    },
+                    mapsize: {
+                        description: 'Enter the mapsize (in MB)',
+                        type: 'number',
+                        pattern: /^[0-9]+$/,
+                        message: 'Mapsize must be a number',
+                        default: 2048,
+                        required: true
+                    },
+                    maxdbs: {
+                        description: 'Maximum number of DBs (each data package uses a db)',
+                        type: 'number',
+                        pattern: /^[0-9]+$/,
+                        message: 'Max DBs must be a number',
+                        default: 1024,
+                        required: true
+                    }
+                }
+            }, function (err, data) {
+                if (data) {
+                    config.lmdb = data;
                 }
                 cb(err);
             });

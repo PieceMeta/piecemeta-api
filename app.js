@@ -2,17 +2,17 @@
 'use strict';
 
 var restify = require('restify'),
+    Promise = require('bluebird'),
     mongoose = require('mongoose'),
+    lmdbClient = require('./lib/lmdb-client'),
+    config = require('./lib/config'),
     preflightEnabler = require('se7ensky-restify-preflight'),
     urlExtParser = require('./lib/parsers/urlext-parser'),
     bodyParser = require('./lib/parsers/body-parser'),
     xmlFormatter = require('./lib/formatters/xml-formatter'),
     csvFormatter = require('./lib/formatters/csv-formatter'),
     tokenAuth = require('./lib/auth/token-auth'),
-    routeAuth = require('./lib/auth/route-auth'),
-    config = require('./lib/config'),
-    htClient = require('./lib/ht-client'),
-    Promise = require('bluebird');
+    routeAuth = require('./lib/auth/route-auth');
 
 Promise.promisify(config.load)()
     .then(function () {
@@ -28,8 +28,11 @@ Promise.promisify(config.load)()
             mongoose.model('Channel', require('./models/channel').Channel);
             mongoose.model('Package', require('./models/package').Package);
             mongoose.model('Stream', require('./models/stream').Stream);
+            console.log('Connected to MongoDB at', dburl);
 
-            htClient.connect(config.get.hypertable.host, config.get.hypertable.port);
+            lmdbClient.openEnv(config.get.lmdb.path, config.get.lmdb.mapsize * 1024 * 1024, config.get.lmdb.maxdbs);
+            lmdbClient.registerSchema('Package', require('./models/lmdb/package').Package);
+
         } else {
             throw new Error('Server has not been configured yet. Please run bin/setup.');
         }
