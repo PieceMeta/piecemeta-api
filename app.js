@@ -32,6 +32,11 @@ Promise.promisify(config.load)()
 
             lmdbClient.openEnv(config.get.lmdb.path, config.get.lmdb.mapsize * 1024 * 1024, config.get.lmdb.maxdbs);
             lmdbClient.registerSchema('Package', require('./models/lmdb/package').Package);
+            lmdbClient.registerSchema('Channel', require('./models/lmdb/channel').Channel);
+            lmdbClient.registerSchema('Stream', require('./models/lmdb/stream').Stream);
+            lmdbClient.registerSchema('AccessToken', require('./models/lmdb/access-token').AccessToken);
+            lmdbClient.registerSchema('ApiKey', require('./models/lmdb/api-key').ApiKey);
+            lmdbClient.registerSchema('User', require('./models/lmdb/user').User);
 
         } else {
             throw new Error('Server has not been configured yet. Please run bin/setup.');

@@ -3,7 +3,7 @@
 
     var users = require('./controllers/users'),
         access_tokens = require('./controllers/access-tokens'),
-        res = require('./controllers/resource-common'),
+        res = require('./controllers/resource-lmdb'),
         streams = require('./controllers/streams'),
         exports = require('./controllers/exports');
 
