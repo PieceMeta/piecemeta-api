@@ -1,7 +1,8 @@
 (function () {
     'use strict';
 
-    var mongoose = require('mongoose'),
+    var restify = require('restify'),
+        mongoose = require('mongoose'),
         preflightEnabler = require('se7ensky-restify-preflight'),
         urlExtParser = require('./lib/parsers/pre/urlext-parser'),
         bodyParser = require('./lib/parsers/body-parser'),
@@ -13,7 +14,7 @@
         config = require('./lib/config'),
         async = require('async'),
         routes = require('./routes')(),
-        pmx;
+        pmx, restify;
 
     async.waterfall([
         function (cb) {
@@ -65,8 +66,7 @@
             }
             cb();
         }, function (cb) {
-            var restify = require('restify'),
-                server = restify.createServer({
+            var server = restify.createServer({
                 name: "PieceMeta API Server",
                 version: require("./package.json").version,
                 formatters: {
@@ -113,7 +113,7 @@
                 }
             }
 
-            if (conf.get.api_server.usePmx) {
+            if (config.get.api_server.usePmx) {
                 server.use(pmx.expressErrorHandler());
             }
 
