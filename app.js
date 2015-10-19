@@ -52,7 +52,7 @@
             */
             cb(null);
         }, function (cb) {
-            if (config.api_server.usePmx) {
+            if (config.get.api_server.usePmx) {
                 require('pmx').init({
                     http: true, // HTTP routes logging (default: true)
                     ignore_routes: [/socket\.io/, /notFound/], // Ignore http routes with this pattern (Default: [])
