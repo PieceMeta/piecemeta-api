@@ -16,6 +16,7 @@
     "msgpack": "^1.0.2",
     "nodemailer": "^1.8.0",
     "piecemeta-apiclient": "~1.0.3",
+    "pmx": "^0.5.5",
     "prompt": "^0.2.14",
     "request": "^2.65.0",
     "restify": "^4.0.3",
