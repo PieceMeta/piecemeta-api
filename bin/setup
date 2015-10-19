@@ -59,6 +59,12 @@ function initialSetup (callback) {
                         type: 'boolean',
                         default: false,
                         required: true
+                    },
+                    usePmx: {
+                        description: 'Use the Keymetrics PMX module (needs PM2 and a Keymetrics account)?',
+                        type: 'boolean',
+                        default: false,
+                        required: true
                     }
                 }
             }, function (err, data) {
