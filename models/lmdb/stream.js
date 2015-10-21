@@ -19,4 +19,4 @@ var Stream = {
 
 };
 
-module.exports.Channel = Stream;
+module.exports.Stream = Stream;

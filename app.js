@@ -1,20 +1,7 @@
 'use strict';
 
-var restify = require('restify'),
-    Promise = require('bluebird'),
-    mongoose = require('mongoose'),
-    lmdbSys = require('./lib/lmdb/sys'),
-    lmdbMeta = require('./lib/lmdb/meta'),
-    lmdbStream = require('./lib/lmdb/stream'),
-    searchClient = require('./lib/search'),
-    config = require('./lib/config'),
-    preflightEnabler = require('se7ensky-restify-preflight'),
-    urlExtParser = require('./lib/parsers/urlext-parser'),
-    bodyParser = require('./lib/parsers/body-parser'),
-    xmlFormatter = require('./lib/formatters/xml-formatter'),
-    csvFormatter = require('./lib/formatters/csv-formatter'),
-    tokenAuth = require('./lib/auth/token-auth'),
-    routeAuth = require('./lib/auth/route-auth');
+var Promise = require('bluebird'),
+    config = require('./lib/config');
 
 Promise.promisify(config.load)()
     .then(function checkConfig() {
@@ -23,12 +10,16 @@ Promise.promisify(config.load)()
         }
     })
     .then(function setupSearch() {
-        return searchClient.setBasepath('./index');
+        var search = require('./lib/search');
+        return search.setBasepath('./index');
     })
     .then(function openLmdbEnv() {
+        var lmdbSys = require('./lib/lmdb/sys');
         return lmdbSys.openEnv(config.get.lmdb.path, config.get.lmdb.mapsize * 1024 * 1024, config.get.lmdb.maxdbs);
     })
     .then(function setupLmdb(lmdbEnv) {
+        var lmdbMeta = require('./lib/lmdb/meta'),
+            lmdbStream = require('./lib/lmdb/stream');
         lmdbStream.setEnv(lmdbEnv);
         lmdbMeta.setEnv(lmdbEnv);
         lmdbMeta.registerSchema('Package', require('./models/lmdb/package').Package);
@@ -38,8 +29,9 @@ Promise.promisify(config.load)()
         lmdbMeta.registerSchema('ApiKey', require('./models/lmdb/api-key').ApiKey);
         lmdbMeta.registerSchema('User', require('./models/lmdb/user').User);
     })
-    .then(function setupServer() {
-        var dburl = 'mongodb://' +
+    .then(function setupMongodb(lmdbEnv) {
+        var mongoose = require('mongoose'),
+            dburl = 'mongodb://' +
             config.get.mongodb.host + ':' +
             config.get.mongodb.port + '/' +
             config.get.mongodb.dbname;
@@ -50,9 +42,12 @@ Promise.promisify(config.load)()
         mongoose.model('Channel', require('./models/channel').Channel);
         mongoose.model('Package', require('./models/package').Package);
         mongoose.model('Stream', require('./models/stream').Stream);
-        console.log('Connected to MongoDB at', dburl);
-
-        var server = restify.createServer({
+        console.log('Connected to MongoDB at %s', dburl);
+    })
+    .then(function setupServer() {
+        var restify = require('restify'),
+            preflightEnabler = require('se7ensky-restify-preflight'),
+            server = restify.createServer({
             name: "PieceMeta API Server",
             version: require("./package.json").version,
             formatters: {
@@ -61,15 +56,15 @@ Promise.promisify(config.load)()
                     return msgPack.pack(body);
                 },
                 'application/xml': function formatXml(req, res, body) {
-                    return xmlFormatter(req, res, body);
+                    return require('./lib/formatters/xml-formatter')(req, res, body);
                 },
                 'text/csv': function formatCsv(req, res, body) {
-                    return csvFormatter(req, res, body);
+                    return require('./lib/formatters/csv-formatter')(req, res, body);
                 }
             }
         });
         server.pre(restify.pre.userAgentConnection());
-        server.pre(urlExtParser());
+        server.pre(require('./lib/parsers/urlext-parser')());
 
         server.use(restify.CORS({
             credentials: true,
@@ -82,13 +77,15 @@ Promise.promisify(config.load)()
         server.use(restify.fullResponse());
         server.use(restify.gzipResponse());
         server.use(restify.authorizationParser());
-        server.use(tokenAuth());
-        server.use(routeAuth());
-        server.use(bodyParser());
+        server.use(require('./lib/auth/token-auth')());
+        server.use(require('./lib/auth/route-auth')());
+        server.use(require('./lib/parsers/body-parser')());
         server.use(restify.queryParser());
 
+        return server;
+    })
+    .then(function setupRoutes(server) {
         var routes = require('./routes')(config);
-
         for (var path in routes) {
             if (typeof routes[path] === 'object') {
                 for (var method in routes[path]) {
@@ -99,7 +96,9 @@ Promise.promisify(config.load)()
                 }
             }
         }
-
+        return server;
+    })
+    .then(function runServer(server) {
         server.listen(config.get.api_server.port, config.get.api_server.host, function () {
             console.log('%s listening at %s', server.name, server.url);
         });

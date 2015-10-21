@@ -3,12 +3,21 @@
 'use strict';
 
 var Promise = require('bluebird'),
-    lmdbClient = require('../lib/lmdb-client'),
+    lmdbSys = require('../lib/lmdb/sys'),
+    lmdbMeta = require('../lib/lmdb/meta'),
+    lmdbStream = require('../lib/lmdb/stream'),
+    search = require('../lib/search'),
     mongoose = require('mongoose'),
     config = require('../lib/config');
 
 Promise.promisify(config.load)()
+    .then(function setupSearch() {
+        return search.setBasepath('../index');
+    })
     .then(function () {
+        return lmdbSys.openEnv(config.get.lmdb.path, config.get.lmdb.mapsize * 1024 * 1024, config.get.lmdb.maxdbs);
+    })
+    .then(function (env) {
         if (config.get) {
             var dburl = 'mongodb://' +
                 config.get.mongodb.host + ':' +
@@ -23,52 +32,61 @@ Promise.promisify(config.load)()
             mongoose.model('Stream', require('../models/stream').Stream);
             console.log('Connected to MongoDB at', dburl);
 
-            lmdbClient.openEnv(config.get.lmdb.path, config.get.lmdb.mapsize * 1024 * 1024, config.get.lmdb.maxdbs);
-            lmdbClient.registerSchema('Package', require('../models/lmdb/package').Package);
-            lmdbClient.registerSchema('Channel', require('../models/lmdb/channel').Channel);
-            lmdbClient.registerSchema('Stream', require('../models/lmdb/stream').Stream);
-            lmdbClient.registerSchema('AccessToken', require('../models/lmdb/access-token').AccessToken);
-            lmdbClient.registerSchema('ApiKey', require('../models/lmdb/api-key').ApiKey);
-            lmdbClient.registerSchema('User', require('../models/lmdb/user').User);
+            lmdbMeta.setEnv(env);
+            lmdbStream.setEnv(env);
+            lmdbMeta.registerSchema('Package', require('../models/lmdb/package').Package);
+            lmdbMeta.registerSchema('Channel', require('../models/lmdb/channel').Channel);
+            lmdbMeta.registerSchema('Stream', require('../models/lmdb/stream').Stream);
+            lmdbMeta.registerSchema('AccessToken', require('../models/lmdb/access-token').AccessToken);
+            lmdbMeta.registerSchema('ApiKey', require('../models/lmdb/api-key').ApiKey);
+            lmdbMeta.registerSchema('User', require('../models/lmdb/user').User);
 
         } else {
             throw new Error('Server has not been configured yet. Please run bin/setup.');
         }
     })
-    /*
     .then(function () {
         return ['Package', 'Channel', 'AccessToken', 'ApiKey', 'User'];
     })
     .map(function (resource) {
+        console.log('Adding resource %s', resource);
         return mongoose.model(resource).find({})
             .then(function (results) {
                 return Promise.map(results, function (pkg) {
-                    var handle, payload = pkg.toObject();
-                    return lmdbClient.openDb(resource)
+                    var _dbi, _payload = pkg.toObject();
+                    return lmdbSys.openDb(resource)
                         .then(function (dbi) {
-                            handle = dbi;
-                            return lmdbClient.putMetaData(handle, resource, payload);
+                            _dbi = dbi;
+                            return lmdbMeta.createMetaData(_dbi, resource, _payload);
                         })
-                        .then(function (obj) {
-                            return lmdbClient.closeDb(handle);
+                        .then(function () {
+                            return lmdbSys.closeDb(_dbi);
                         })
                         .catch(function (err) {
-                            console.log('error inserting %s for UUID %s', resource, payload.uuid, err.stack);
+                            console.log('Error inserting %s for UUID %s', resource, _payload.uuid, err.stack);
                         });
                 }, {concurrency: 1});
             });
     }, {concurrency: 1})
-    */
     .then(function () {
         return mongoose.model('Channel').find({});
     })
     .map(function (channel) {
-        var streamGroups = {}, noGroup = [], handle;
+        var streamGroups = {}, noGroup = [], _dbi, _streams;
         return mongoose.model('Stream').find({channel_uuid: channel.uuid})
             .then(function (streams) {
-                return streams;
+                _streams = streams;
+                return;
+            })
+            .then(function () {
+                return lmdbSys.openDb(channel.package_uuid)
+                    .then(function (dbi) {
+                        _dbi = dbi;
+                        return _streams;
+                    });
             })
             .map(function (stream) {
+                console.log('Adding stream metadata for %s', stream.uuid);
                 if (stream.group) {
                     if (streamGroups.hasOwnProperty(stream.group)) {
                         streamGroups[stream.group].push(stream.toObject());
@@ -78,14 +96,16 @@ Promise.promisify(config.load)()
                 } else {
                     noGroup.push(stream.toObject());
                 }
+                var metaObj = stream.toObject();
+                metaObj.frameCount = metaObj.frames.length;
+                delete metaObj.frames;
+                metaObj.format = 'float';
+                return lmdbMeta.createMetaData(_dbi, 'Stream', metaObj);
             }, {concurrency: 1})
             .then(function () {
-                return lmdbClient.openDb(channel.package_uuid);
-            })
-            .then(function (dbi) {
-                handle = dbi;
                 var groupKeys = Object.keys(streamGroups);
                 return Promise.map(groupKeys, function (groupKey) {
+                    console.log('Adding stream group data for key %s', groupKey);
                     var group = streamGroups[groupKey],
                         labels = [], frames = [];
                     for (var g = 0; g < group.length; g += 1) {
@@ -137,8 +157,8 @@ Promise.promisify(config.load)()
                         }
                     }
 
-                    return lmdbClient.putStreamData(
-                        handle,
+                    return lmdbStream.putStreamData(
+                        _dbi,
                         group[0].uuid,
                         buffer,
                         {
@@ -150,11 +170,11 @@ Promise.promisify(config.load)()
 
                 }, {concurrency: 1});
             })
-            .then(function (obj) {
-                return lmdbClient.closeDb(handle);
+            .then(function () {
+                return lmdbSys.closeDb(_dbi);
             })
             .catch(function (err) {
-                console.log('error inserting stream for UUID %s', channel.uuid, err.stack);
+                console.log('Error inserting stream for UUID %s', channel.uuid, err.stack);
             });
     }, {concurrency: 1})
     .then(function () {

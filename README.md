@@ -12,6 +12,6 @@ Unstable: Expect patches and features, possible api changes.
 
 ```bash
 npm install
-bin/setup
+bin/setup.js
 node app.js
 ```
