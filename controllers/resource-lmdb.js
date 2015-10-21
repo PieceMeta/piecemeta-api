@@ -36,7 +36,7 @@ function performCrud(req, config) {
             dbi = dbiRes;
             switch (config.action) {
                 case 'find':
-                    return lmdbMeta.queryMetaData(dbi, query);
+                    return lmdbMeta.queryMetaData(dbi, config.resource, query);
                 case 'get':
                     return lmdbMeta.getMetaData(dbi, req.params.uuid);
                 case 'put':

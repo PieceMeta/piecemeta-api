@@ -2,7 +2,8 @@
 
 var ApiKey = {
 
-    key: {type: 'string', primary: true},
+    uuid: {type: 'string', primary: true},
+    key: {type: 'string', index: true},
     secret: {type: 'string'},
     user_uuid: {type: 'string', index: true, required: true},
     device_uuid: {type: 'string'},

@@ -29,7 +29,7 @@ Promise.promisify(config.load)()
         lmdbMeta.registerSchema('User', require('../models/lmdb/user').User);
     })
     .then(function () {
-        var resources = ['Package', 'Channel', 'Stream', 'AccessToken', 'ApiKey', 'User'];
+        var _dbi, resources = ['Package', 'Channel', 'Stream', 'AccessToken', 'ApiKey', 'User'];
         return Promise.map(resources, function (resource) {
             return search.index(resource).clear()
                 .then(function () {
@@ -39,6 +39,8 @@ Promise.promisify(config.load)()
                     var txn = _env.beginTxn({readOnly: true}),
                         cursor = new lmdb.Cursor(txn, dbi),
                         results = [];
+
+                    _dbi = dbi;
 
                     for (var entry = cursor.goToFirst(); entry; entry = cursor.goToNext()) {
                         cursor.getCurrentBinary(unpackResult);
@@ -56,6 +58,9 @@ Promise.promisify(config.load)()
                 .map(function (result) {
                     return search.index(resource).add(result, lmdbMeta.getSchema(resource));
                 }, {concurrency: 1})
+                .then(function () {
+                    return lmdbSys.closeDb(_dbi);
+                })
                 .then(function () {
                     return search.index(resource).stat();
                 })

@@ -2,7 +2,8 @@
 
 var AccessToken = {
 
-    token: {type: 'string', primary: true},
+    uuid: {type: 'string', primary: true},
+    token: {type: 'string', index: true},
     api_key: {type: 'string', index: true, required: true},
     scopes: {type: 'array', default: ['user']},
     issued: 'date',

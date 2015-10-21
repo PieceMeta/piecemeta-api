@@ -52,19 +52,8 @@ Promise.promisify(config.load)()
         console.log('Adding resource %s', resource);
         return mongoose.model(resource).find({})
             .then(function (results) {
-                return Promise.map(results, function (pkg) {
-                    var _dbi, _payload = pkg.toObject();
-                    return lmdbSys.openDb(resource)
-                        .then(function (dbi) {
-                            _dbi = dbi;
-                            return lmdbMeta.createMetaData(_dbi, resource, _payload);
-                        })
-                        .then(function () {
-                            return lmdbSys.closeDb(_dbi);
-                        })
-                        .catch(function (err) {
-                            console.log('Error inserting %s for UUID %s', resource, _payload.uuid, err.stack);
-                        });
+                return Promise.map(results, function (data) {
+                    return storeMeta(resource, data.toObject());
                 }, {concurrency: 1});
             });
     }, {concurrency: 1})
@@ -86,7 +75,6 @@ Promise.promisify(config.load)()
                     });
             })
             .map(function (stream) {
-                console.log('Adding stream metadata for %s', stream.uuid);
                 if (stream.group) {
                     if (streamGroups.hasOwnProperty(stream.group)) {
                         streamGroups[stream.group].push(stream.toObject());
@@ -96,78 +84,22 @@ Promise.promisify(config.load)()
                 } else {
                     noGroup.push(stream.toObject());
                 }
-                var metaObj = stream.toObject();
-                metaObj.frameCount = metaObj.frames.length;
-                delete metaObj.frames;
-                metaObj.format = 'float';
-                return lmdbMeta.createMetaData(_dbi, 'Stream', metaObj);
             }, {concurrency: 1})
             .then(function () {
                 var groupKeys = Object.keys(streamGroups);
                 return Promise.map(groupKeys, function (groupKey) {
-                    console.log('Adding stream group data for key %s', groupKey);
-                    var group = streamGroups[groupKey],
-                        labels = [], frames = [];
-                    for (var g = 0; g < group.length; g += 1) {
-                        labels.push(group[g].title);
-                    }
-                    for (var f = 0; f < group[0].frames.length; f += 1) {
-                        var frame = [];
-                        for (var fv = 0; fv < labels.length; fv += 1) {
-                            frame.push(group[fv].frames[f]);
-                        }
-                        frames.push(frame);
-                    }
-
-                    var frameCount = frames.length,
-                        valCount = labels.length,
-                        format = 'float',
-                        frameSize, buffer, valueLength, writeFunc;
-
-                    switch (format) {
-                        case 'double':
-                            valueLength = 8;
-                            break;
-                        case 'float':
-                            valueLength = 4;
-                            break;
-                        default:
-                            throw new Error('Unknown format: ' + format);
-                    }
-
-                    frameSize = valCount * valueLength;
-                    buffer = new Buffer(frameCount * frameSize);
-
-                    switch (format) {
-                        case 'double':
-                            writeFunc = function (val, offset) {
-                                buffer.writeDoubleLE(val, offset);
-                            };
-                            break;
-                        case 'float':
-                            writeFunc = function (val, offset) {
-                                buffer.writeFloatLE(val, offset);
-                            };
-                            break;
-                    }
-
-                    for (var i = 0; i < frameCount; i += 1) {
-                        for (var v = 0; v < valCount; v += 1) {
-                            writeFunc(frames[i][v], frameSize * i + v * valueLength);
-                        }
-                    }
-
-                    return lmdbStream.putStreamData(
-                        _dbi,
-                        group[0].uuid,
-                        buffer,
-                        {
-                            from: 0,
-                            valueLength: valueLength,
-                            valueCount: valCount
-                        }
-                    );
-
+                    return storeStreamData(_dbi, streamGroups[groupKey])
+                        .then(function (meta) {
+                            return storeMeta('Stream', meta);
+                        });
+                }, {concurrency: 1});
+            })
+            .then(function () {
+                return Promise.map(noGroup, function (stream) {
+                    return storeStreamData(_dbi, [stream])
+                        .then(function (meta) {
+                            return storeMeta('Stream', meta);
+                        });
                 }, {concurrency: 1});
             })
             .then(function () {
@@ -181,3 +113,98 @@ Promise.promisify(config.load)()
         console.log('done.');
         process.exit(0);
     });
+
+function storeStreamData(dbi, group) {
+    var labels = [], frames = [], meta = group[0], maxlength = 0;
+    for (var g = 0; g < group.length; g += 1) {
+        if (group[g].frames && group[g].frames.length > maxlength) {
+            maxlength = group[g].frames.length;
+        } else {
+            group[g].frames = [];
+        }
+        labels.push(group[g].title);
+    }
+    meta.labels = labels;
+    meta.format = 'float';
+    console.log('Adding stream data for UUID %s', meta.uuid);
+    for (var f = 0; f < maxlength; f += 1) {
+        var frame = [];
+        for (var fv = 0; fv < labels.length; fv += 1) {
+            frame.push(group[fv].frames[f] || null);
+        }
+        frames.push(frame);
+    }
+
+    var frameCount = frames.length,
+        valCount = labels.length,
+        format = 'float',
+        frameSize, buffer, valueLength, writeFunc;
+
+    switch (format) {
+        case 'double':
+            valueLength = 8;
+            break;
+        case 'float':
+            valueLength = 4;
+            break;
+        default:
+            throw new Error('Unknown format: ' + format);
+    }
+
+    frameSize = valCount * valueLength;
+    buffer = new Buffer(frameCount * frameSize);
+
+    // TODO: what to do with the possible null values?
+
+    switch (format) {
+        case 'double':
+            writeFunc = function (val, offset) {
+                if (val) buffer.writeDoubleLE(val, offset);
+            };
+            break;
+        case 'float':
+            writeFunc = function (val, offset) {
+                if (val) buffer.writeFloatLE(val, offset);
+            };
+            break;
+    }
+
+    for (var i = 0; i < frameCount; i += 1) {
+        for (var v = 0; v < valCount; v += 1) {
+            writeFunc(frames[i][v], frameSize * i + v * valueLength);
+        }
+    }
+
+    return lmdbStream.putStreamData(
+            dbi,
+            group[0].uuid,
+            buffer,
+            {
+                from: 0,
+                valueLength: valueLength,
+                valueCount: valCount
+            }
+        )
+        .then(function () {
+            return meta;
+        });
+}
+
+function storeMeta(resource, payload) {
+    var _dbi;
+    console.log('Adding metadata for resource %s with UUID %s', resource, payload.uuid);
+    return lmdbSys.openDb(resource)
+        .then(function (dbi) {
+            _dbi = dbi;
+            if (resource === 'Stream') {
+                delete payload.frames;
+            }
+            return lmdbMeta.createMetaData(_dbi, resource, payload, true);
+        })
+        .then(function () {
+            return lmdbSys.closeDb(_dbi);
+        })
+        .catch(function (err) {
+            console.log('Error inserting %s for UUID %s', resource, payload.uuid, err.stack);
+        });
+}
