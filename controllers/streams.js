@@ -2,8 +2,9 @@
 
 var mongoose = require('mongoose'),
     Promise = require('bluebird'),
-    lmdbClient = require('../lib/lmdb-client'),
-    lmdbResponse = require('../lib/util/lmdb-response'),
+    lmdbSys = require('../lib/lmdb/sys'),
+    lmdbStream = require('../lib/lmdb/stream'),
+    lmdbResponse = require('../lib/lmdb/response'),
     mongoHandler = require('../lib/util/mongoose-response');
 
 Promise.longStackTraces();
@@ -90,7 +91,7 @@ module.exports = function (config) {
                     })
                     .then(function (data) {
                         var pkgDbi;
-                        return lmdbClient.openDb(data.package_uuid)
+                        return lmdbSys.openDb(data.package_uuid)
                             .then(function (dbi) {
                                 pkgDbi = dbi;
                                 var conf = {
@@ -98,7 +99,7 @@ module.exports = function (config) {
                                     to: parseInt(req.query.to),
                                     skip: parseInt(req.query.skip)
                                 };
-                                return lmdbClient.getStreamData(dbi, data.uuid, conf);
+                                return lmdbStream.getStreamData(dbi, data.uuid, conf);
                             })
                             .then(function (result) {
                                 var resultLength = result.length;
@@ -116,7 +117,7 @@ module.exports = function (config) {
                                     data.frames.push(val);
                                 }
 
-                                return lmdbClient.closeDb(pkgDbi);
+                                return lmdbSys.closeDb(pkgDbi);
                             })
                             .then(function () {
                                 return data;
@@ -132,7 +133,7 @@ module.exports = function (config) {
                     })
                     .catch(function (err) {
                         console.log(err.stack);
-                        res.send(mongoHandler.handleError(err));
+                        res.send(lmdbResponse.handleError(err));
                         next();
                     });
             });
@@ -148,7 +149,7 @@ module.exports = function (config) {
             mongoose.model('Stream')
                 .createAsync(object)
                 .then(function (data) {
-                    return lmdbClient.openDb(data.package_uuid)
+                    return lmdbSys.openDb(data.package_uuid)
                         .then(function (dbi) {
                             pkgDbi = dbi;
 
@@ -189,7 +190,7 @@ module.exports = function (config) {
                                 }
                             }
 
-                            return lmdbClient.putStreamData(
+                            return lmdbStream.putStreamData(
                                 pkgDbi,
                                 data.uuid,
                                 buffer,
@@ -201,7 +202,7 @@ module.exports = function (config) {
                             );
                         })
                         .then(function () {
-                            return lmdbClient.closeDb(pkgDbi);
+                            return lmdbSys.closeDb(pkgDbi);
                         })
                         .then(function () {
                             return data;
@@ -217,7 +218,7 @@ module.exports = function (config) {
                 })
                 .catch(function (err) {
                     console.log(err.stack);
-                    res.send(mongoHandler.handleError(err));
+                    res.send(lmdbResponse.handleError(err));
                     next();
                 });
         }

@@ -1,10 +1,12 @@
-
 'use strict';
 
 var restify = require('restify'),
     Promise = require('bluebird'),
     mongoose = require('mongoose'),
-    lmdbClient = require('./lib/lmdb-client'),
+    lmdbSys = require('./lib/lmdb/sys'),
+    lmdbMeta = require('./lib/lmdb/meta'),
+    lmdbStream = require('./lib/lmdb/stream'),
+    searchClient = require('./lib/search'),
     config = require('./lib/config'),
     preflightEnabler = require('se7ensky-restify-preflight'),
     urlExtParser = require('./lib/parsers/urlext-parser'),
@@ -15,32 +17,40 @@ var restify = require('restify'),
     routeAuth = require('./lib/auth/route-auth');
 
 Promise.promisify(config.load)()
-    .then(function () {
-        if (config.get) {
-            var dburl = 'mongodb://' +
-                config.get.mongodb.host + ':' +
-                config.get.mongodb.port + '/' +
-                config.get.mongodb.dbname;
-            mongoose.connect(dburl);
-            mongoose.model('User', require('./models/user').User);
-            mongoose.model('ApiKey', require('./models/api-key').ApiKey);
-            mongoose.model('AccessToken', require('./models/access-token').AccessToken);
-            mongoose.model('Channel', require('./models/channel').Channel);
-            mongoose.model('Package', require('./models/package').Package);
-            mongoose.model('Stream', require('./models/stream').Stream);
-            console.log('Connected to MongoDB at', dburl);
-
-            lmdbClient.openEnv(config.get.lmdb.path, config.get.lmdb.mapsize * 1024 * 1024, config.get.lmdb.maxdbs);
-            lmdbClient.registerSchema('Package', require('./models/lmdb/package').Package);
-            lmdbClient.registerSchema('Channel', require('./models/lmdb/channel').Channel);
-            lmdbClient.registerSchema('Stream', require('./models/lmdb/stream').Stream);
-            lmdbClient.registerSchema('AccessToken', require('./models/lmdb/access-token').AccessToken);
-            lmdbClient.registerSchema('ApiKey', require('./models/lmdb/api-key').ApiKey);
-            lmdbClient.registerSchema('User', require('./models/lmdb/user').User);
-
-        } else {
+    .then(function checkConfig() {
+        if (typeof config.get !== 'object') {
             throw new Error('Server has not been configured yet. Please run bin/setup.');
         }
+    })
+    .then(function setupSearch() {
+        return searchClient.setBasepath('./index');
+    })
+    .then(function openLmdbEnv() {
+        return lmdbSys.openEnv(config.get.lmdb.path, config.get.lmdb.mapsize * 1024 * 1024, config.get.lmdb.maxdbs);
+    })
+    .then(function setupLmdb(lmdbEnv) {
+        lmdbStream.setEnv(lmdbEnv);
+        lmdbMeta.setEnv(lmdbEnv);
+        lmdbMeta.registerSchema('Package', require('./models/lmdb/package').Package);
+        lmdbMeta.registerSchema('Channel', require('./models/lmdb/channel').Channel);
+        lmdbMeta.registerSchema('Stream', require('./models/lmdb/stream').Stream);
+        lmdbMeta.registerSchema('AccessToken', require('./models/lmdb/access-token').AccessToken);
+        lmdbMeta.registerSchema('ApiKey', require('./models/lmdb/api-key').ApiKey);
+        lmdbMeta.registerSchema('User', require('./models/lmdb/user').User);
+    })
+    .then(function setupServer() {
+        var dburl = 'mongodb://' +
+            config.get.mongodb.host + ':' +
+            config.get.mongodb.port + '/' +
+            config.get.mongodb.dbname;
+        mongoose.connect(dburl);
+        mongoose.model('User', require('./models/user').User);
+        mongoose.model('ApiKey', require('./models/api-key').ApiKey);
+        mongoose.model('AccessToken', require('./models/access-token').AccessToken);
+        mongoose.model('Channel', require('./models/channel').Channel);
+        mongoose.model('Package', require('./models/package').Package);
+        mongoose.model('Stream', require('./models/stream').Stream);
+        console.log('Connected to MongoDB at', dburl);
 
         var server = restify.createServer({
             name: "PieceMeta API Server",

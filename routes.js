@@ -21,26 +21,26 @@
             },
             '/packages': {
                 'get': {
-                    controller: res({resource: 'Package'}).find,
+                    controller: res({resource: 'Package', action: 'find'}),
                     scope: 'public'
                 },
                 'post': {
-                    controller: res({resource: 'Package'}).post,
+                    controller: res({resource: 'Package', action: 'post'}),
                     scope: 'user'
                 }
             },
             '/packages/:uuid': {
                 'get': {
-                    controller: res({resource: 'Package'}).get,
+                    controller: res({resource: 'Package', action: 'get'}),
                     scope: 'public'
                 },
                 'put': {
-                    controller: res({resource: 'Package'}).put,
+                    controller: res({resource: 'Package', action: 'put'}),
                     scope: 'user',
                     cache_related: ['/packages']
                 },
                 'delete': {
-                    controller: res({resource: 'Package'}).del,
+                    controller: res({resource: 'Package', action: 'del'}),
                     overrideVerb: 'del',
                     scope: 'user',
                     cache_related: ['/packages']
@@ -48,7 +48,7 @@
             },
             '/packages/:uuid/channels': {
                 'get': {
-                    controller: res({resource: 'Channel', query: {id_mapping: 'package_uuid'}}).find,
+                    controller: res({resource: 'Channel', query: {id_mapping: 'package_uuid'}, action: 'find'}),
                     scope: 'public'
                 }
             },
@@ -64,22 +64,22 @@
             },
             '/channels': {
                 'post': {
-                    controller: res({resource: 'Channel'}).post,
+                    controller: res({resource: 'Channel', action: 'post'}),
                     scope: 'user'
                 }
             },
             '/channels/:uuid': {
                 'get': {
-                    controller: res({resource: 'Channel'}).get,
+                    controller: res({resource: 'Channel', action: 'get'}),
                     scope: 'public'
                 },
                 'put': {
-                    controller: res({resource: 'Channel'}).put,
+                    controller: res({resource: 'Channel', action: 'get'}),
                     scope: 'user',
                     cache_related: ['/packages/:uuid/channels']
                 },
                 'delete': {
-                    controller: res({resource: 'Channel'}).del,
+                    controller: res({resource: 'Channel', action: 'del'}),
                     overrideVerb: 'del',
                     scope: 'user',
                     cache_related: ['/packages/:uuid/channels']
@@ -99,7 +99,7 @@
             },
             '/streams/:uuid/meta': {
                 'get': {
-                    controller: res({resource: 'Stream', select: '-frames'}).get,
+                    controller: res({resource: 'Stream', select: '-frames', action: 'get'}),
                     scope: 'public'
                 }
             },
@@ -109,12 +109,12 @@
                     scope: 'public'
                 },
                 'put': {
-                    controller: res({resource: 'Stream'}).put,
+                    controller: res({resource: 'Stream', action: 'put'}),
                     scope: 'user',
                     cache_related: ['/channels/:uuid/streams']
                 },
                 'delete': {
-                    controller: res({resource: 'Stream'}).del,
+                    controller: res({resource: 'Stream', action: 'del'}),
                     overrideVerb: 'del',
                     scope: 'user',
                     cache_related: ['/channels/:uuid/streams']
@@ -149,7 +149,7 @@
             },
             '/users/me/api_keys': {
                 'get': {
-                    controller: res({ resource: 'ApiKey', query: { user_mapping: 'user_uuid' } }).find,
+                    controller: res({ resource: 'ApiKey', query: { user_mapping: 'user_uuid', action: 'find' }}),
                     scope: 'user'
                 }
             }

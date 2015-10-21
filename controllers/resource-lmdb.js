@@ -1,105 +1,70 @@
 'use strict';
 
-var lmdb = require('../lib/lmdb-client'),
-    uuid = require('../lib/util/uuid'),
-    lmdbHandler = require('../lib/util/lmdb-response');
+var assert = require('assert-plus'),
+    lmdbSys = require('../lib/lmdb/sys'),
+    lmdbMeta = require('../lib/lmdb/meta'),
+    lmdbHandler = require('../lib/lmdb/response');
 
 module.exports = function (config) {
-    return {
-        find: function (req, res, next) {
-            var query = {};
-            query = require('../lib/util/query-mapping')(query, req, config);
-            return lmdb.openDb(config.resource)
-                .then(function (dbi) {
-                    return lmdb.queryMetaData(dbi, query);
-                })
-                .then(function (data) {
-                    if (data) {
-                        res.send(200, data);
-                    } else {
-                        var restify = require('restify');
-                        res.send(new restify.NotFoundError());
-                    }
-                    next();
-                })
-                .catch(function (err) {
-                    res.send(lmdbHandler.handleError(err));
-                    next();
-                });
-        },
-        get: function (req, res, next) {
-            return lmdb.openDb(config.resource)
-                .then(function (dbi) {
-                    return lmdb.getMetaData(dbi, req.params.uuid);
-                })
-                .then(function (data) {
-                    if (data) {
-                        res.send(200, data);
-                    } else {
-                        var restify = require('restify');
-                        res.send(new restify.NotFoundError());
-                    }
-                    next();
-                })
-                .catch(function (err) {
-                    res.send(lmdbHandler.handleError(err));
-                    next();
-                });
-        },
-        post: function (req, res, next) {
-            var object = req.body;
-            object.user_uuid = req.user.uuid;
-            return lmdb.openDb(config.resource)
-                .then(function (dbi) {
-                    object.uuid = uuid.v4();
-                    return lmdb.putMetaData(dbi, config.resource, object);
-                })
-                .then(function (data) {
-                    res.send(200, data);
-                    next();
-                })
-                .catch(function (err) {
-                    res.send(lmdbHandler.handleError(err));
-                    next();
-                });
-        },
-        put: function (req, res, next) {
-            return lmdb.openDb(config.resource)
-                .then(function (dbi) {
-                    return lmdb.putMetaData(dbi, config.resource, req.body);
-                })
-                .then(function (data) {
-                    if (data) {
-                        res.send(200, data);
-                    } else {
-                        var restify = require('restify');
-                        res.send(new restify.NotFoundError());
-                    }
-                    next();
-                })
-                .catch(function (err) {
-                    res.send(lmdbHandler.handleError(err));
-                    next();
-                });
-        },
-        del: function (req, res, next) {
-            return lmdb.openDb(config.resource)
-                .then(function (dbi) {
-                    return lmdb.delMetaData(dbi, req.params.uuid);
-                })
-                .then(function (data) {
-                    if (data) {
-                        res.send(200, data);
-                    } else {
-                        var restify = require('restify');
-                        res.send(new restify.NotFoundError());
-                    }
-                    next();
-                })
-                .catch(function (err) {
-                    res.send(lmdbHandler.handleError(err));
-                    next();
-                });
-        }
+    assert.object(config, 'Resource config');
+
+    return function (req, res, next) {
+        performCrud(req, config)
+            .then(function (result) {
+                sendResOrNotFound(res, result, next);
+            })
+            .catch(function (err) {
+                errorResponse(res, err, next);
+            });
     };
 };
+
+function performCrud(req, config) {
+    assert.object(req, 'Request');
+    assert.object(config, 'Resource config');
+
+    var query = {}, object, result, dbi;
+    if (config.action === 'find') {
+        query = require('../lib/util/query-mapping')(query, req, config);
+    }
+    if (config.action === 'post') {
+        object = req.body;
+        object.user_uuid = req.user.uuid;
+    }
+    return lmdbSys.openDb(config.resource)
+        .then(function (dbiRes) {
+            dbi = dbiRes;
+            switch (config.action) {
+                case 'find':
+                    return lmdbMeta.queryMetaData(dbi, query);
+                case 'get':
+                    return lmdbMeta.getMetaData(dbi, req.params.uuid);
+                case 'put':
+                    return lmdbMeta.updateMetaData(dbi, config.resource, req.params.uuid, req.body);
+                case 'del':
+                    return lmdbMeta.delMetaData(dbi, req.params.uuid);
+            }
+        })
+        .then(function (data) {
+            result = data;
+            return lmdbSys.closeDb(dbi);
+        })
+        .then(function () {
+            return result;
+        });
+}
+
+function sendResOrNotFound(res, result, next) {
+    if (result) {
+        res.send(200, result);
+    } else {
+        var restify = require('restify');
+        res.send(new restify.NotFoundError());
+    }
+    next();
+}
+
+function errorResponse(res, err, next) {
+    res.send(lmdbHandler.handleError(err));
+    next();
+}

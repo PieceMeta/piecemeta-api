@@ -27,6 +27,7 @@
     "restify": "~4.0.3",
     "sanitizer": "^0.1.2",
     "se7ensky-restify-preflight": "^0.1.7",
+    "search-index": "^0.6.14",
     "secure-random": "~1.1.1",
     "sha1": "~1.1.0",
     "validator": "^4.1.0",
