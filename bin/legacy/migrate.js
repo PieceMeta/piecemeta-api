@@ -3,12 +3,12 @@
 'use strict';
 
 var Promise = require('bluebird'),
-    lmdbSys = require('../lib/lmdb/sys'),
-    lmdbMeta = require('../lib/lmdb/meta'),
-    lmdbStream = require('../lib/lmdb/stream'),
-    search = require('../lib/search'),
+    lmdbSys = require('../../lib/lmdb/sys'),
+    lmdbMeta = require('../../lib/lmdb/meta'),
+    lmdbStream = require('../../lib/lmdb/stream'),
+    search = require('../../lib/search'),
     mongoose = require('mongoose'),
-    config = require('../lib/config');
+    config = require('../../lib/config');
 
 Promise.promisify(config.load)()
     .then(function setupSearch() {
@@ -34,12 +34,12 @@ Promise.promisify(config.load)()
 
             lmdbMeta.setEnv(env);
             lmdbStream.setEnv(env);
-            lmdbMeta.registerSchema('Package', require('../models/package').Package);
-            lmdbMeta.registerSchema('Channel', require('../models/channel').Channel);
-            lmdbMeta.registerSchema('Stream', require('../models/stream').Stream);
-            lmdbMeta.registerSchema('AccessToken', require('../models/access-token').AccessToken);
-            lmdbMeta.registerSchema('ApiKey', require('../models/api-key').ApiKey);
-            lmdbMeta.registerSchema('User', require('../models/user').User);
+            lmdbMeta.registerSchema('Package', require('../../models/package').Package);
+            lmdbMeta.registerSchema('Channel', require('../../models/channel').Channel);
+            lmdbMeta.registerSchema('Stream', require('../../models/stream').Stream);
+            lmdbMeta.registerSchema('AccessToken', require('../../models/access-token').AccessToken);
+            lmdbMeta.registerSchema('ApiKey', require('../../models/api-key').ApiKey);
+            lmdbMeta.registerSchema('User', require('../../models/user').User);
 
         } else {
             throw new Error('Server has not been configured yet. Please run bin/setup.');

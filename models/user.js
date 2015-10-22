@@ -1,6 +1,7 @@
 'use strict';
 
-var User = {
+var Promise = require('bluebird'),
+    User = {
 
     uuid: {type: 'string', index: true, unique: true},
     name: {type: 'string', required: true},
@@ -18,24 +19,21 @@ var User = {
 
 };
 
-module.exports.isValidPassword = function (password, instance, callback) {
-    // TODO: to be fixed...
+module.exports.isValidPassword = function (password, instance) {
     if (instance.failed_logins > 3 && Date.now() - instance.last_login < 300000) {
-        callback(new Error('Too many failed login attempts. Account blocked for 5 minutes.'), false);
+        throw new Error('Too many failed login attempts. Account blocked for 5 minutes.');
     } else {
-        this.constructor.encryptPassword(password, instance.password_salt, function (err, password_hash) {
-            if (err) {
-                return callback(err, false);
-            }
-            instance.last_login = Date.now();
-            var loginSuccess = instance.crypted_password === password_hash;
-            if (!loginSuccess) {
-                instance.failed_logins += 1;
-            } else {
-                instance.failed_logins = 0;
-            }
-            callback(err, loginSuccess);
-        });
+        return module.exports.encryptPassword(password, instance.password_salt)
+            .then(function (password_hash) {
+                instance.last_login = Date.now();
+                var loginSuccess = instance.crypted_password === password_hash;
+                if (!loginSuccess) {
+                    instance.failed_logins += 1;
+                } else {
+                    instance.failed_logins = 0;
+                }
+                return loginSuccess;
+            });
     }
 };
 
@@ -47,9 +45,10 @@ module.exports.generatePasswordSalt = function () {
 
 module.exports.encryptPassword = function (password, salt, callback) {
     var crypto = require('crypto');
-    crypto.pbkdf2(password, salt, 80000, 256, function (err, hash_bytes) {
-        callback(err, hash_bytes ? hash_bytes.toString('hex') : null);
-    });
+    return Promise.promisify(crypto.pbkdf2)(password, salt, 80000, 256)
+        .then(function (hash_bytes) {
+            return hash_bytes ? hash_bytes.toString('hex') : null;
+        });
 };
 
 module.exports.generateUUID = function (obj) {

@@ -149,7 +149,7 @@ function initialSetup(callback) {
                         type: 'number',
                         pattern: /^[0-9]+$/,
                         message: 'Mapsize must be a number',
-                        default: 2048,
+                        default: 4096,
                         required: true
                     },
                     maxdbs: {
@@ -157,7 +157,7 @@ function initialSetup(callback) {
                         type: 'number',
                         pattern: /^[0-9]+$/,
                         message: 'Max DBs must be a number',
-                        default: 1024,
+                        default: 256,
                         required: true
                     }
                 }

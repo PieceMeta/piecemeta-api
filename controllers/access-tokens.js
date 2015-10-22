@@ -3,6 +3,9 @@
 var restify = require('restify'),
     Promise = require('bluebird'),
     lmdbResource = require('./resource-lmdb'),
+    userModel = require('../models/user'),
+    apiKeyModel = require('../models/api-key'),
+    accessTokenModel = require('../models/access-token'),
     search = require('../lib/search');
 
 module.exports.post = function (req, res, next) {
@@ -21,9 +24,13 @@ module.exports.post = function (req, res, next) {
             } else if (req.params.email) {
                 return search.index('User').query({email: req.params.email})
                     .then(function (user) {
-                        // TODO: check password
-                        cred.user = user;
-                        return cred;
+                        return userModel.isValidPassword(req.params.password, user)
+                            .then(function (valid) {
+                                if (valid) {
+                                    cred.user = user;
+                                }
+                                return cred;
+                            });
                     });
             } else if (req.params.single_access_token) {
                 return search.index('User').query({
@@ -43,11 +50,19 @@ module.exports.post = function (req, res, next) {
             if (cred.api_key) {
                 return cred;
             } else if (cred.user) {
-                return search.index('ApiKey').query({user_uuid: user.uuid})
+                return search.index('ApiKey').query({user_uuid: cred.user.uuid})
                     .then(function (key) {
-                        // TODO: create key if not exists
-                        cred.api_key = key;
-                        return cred;
+                        if (!key) {
+                            var req = {user: cred.user, body: apiKeyModel.generateApiCredentials({})};
+                            return lmdbResource.performCrud(req, {resource: 'ApiKey', action: 'post'})
+                                .then(function (api_key) {
+                                    cred.api_key = api_key;
+                                    return cred;
+                                });
+                        } else {
+                            cred.api_key = key;
+                            return cred;
+                        }
                     });
             } else {
                 throw new restify.InvalidCredentialsError();
@@ -66,12 +81,18 @@ module.exports.post = function (req, res, next) {
             }
         })
         .then(function (cred) {
-            if (cred.access_token) {
-                // TODO: verify token validity
+            if (cred.access_token && accessTokenModel.isValid(cred.access_token)) {
                 return lmdbResource.sendResOrNotFound(res, cred.access_token, next);
             } else {
-                // TODO: create token
-                throw new restify.InvalidCredentialsError();
+                var req = {user: cred.user, body: {
+                    token: accessTokenModel.generateAccessToken(),
+                    api_key: cred.api_key.key,
+                    issued: Date.now()
+                }};
+                return lmdbResource.performCrud(req, {resource: 'AccessToken', action: 'post'})
+                    .then(function (access_token) {
+                        return lmdbResource.sendResOrNotFound(res, access_token, next);
+                    });
             }
         })
         .catch(function (err) {

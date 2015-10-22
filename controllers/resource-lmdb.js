@@ -39,6 +39,8 @@ module.exports.performCrud = function (req, config) {
                     return lmdbMeta.queryMetaData(dbi, config.resource, query);
                 case 'get':
                     return lmdbMeta.getMetaData(dbi, req.params.uuid);
+                case 'post':
+                    return lmdbMeta.createMetaData(dbi, config.resource, object);
                 case 'put':
                     return lmdbMeta.updateMetaData(dbi, config.resource, req.params.uuid, req.body);
                 case 'del':
