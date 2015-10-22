@@ -1,21 +1,15 @@
 'use strict';
 
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    Package = new Schema({
+var Package = {
 
-        uuid: {type: String, unique: true},
-        namespace: {type: String, required: true},
-        user_uuid: {type: String, index: true, required: true},
-        title: {type: String, required: true},
-        description: {type: String},
+    uuid: {type: 'string', index: true, unique: true},
+    user_uuid: {type: 'string', index: true, required: true},
+    title: {type: 'string', required: true},
+    description: {type: 'string'},
 
-        created: Date,
-        updated: Date
+    created: 'date',
+    updated: 'date'
 
-    }, {
-        autoindex: process.env.NODE_ENV !== 'production',
-        id: false
-    });
+};
 
-module.exports.Package = require('../lib/util/model-helper').setup(Package);
+module.exports.Package = Package;

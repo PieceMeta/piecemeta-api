@@ -1,122 +1,81 @@
 'use strict';
 
-var mongoose = require('mongoose'),
-    restify = require('restify'),
-    mongoHandler = require('../lib/util/mongoose-response');
+var restify = require('restify'),
+    Promise = require('bluebird'),
+    lmdbResource = require('./resource-lmdb'),
+    search = require('../lib/search');
 
 module.exports.post = function (req, res, next) {
-    var async = require('async');
-    async.waterfall([
-        function (cb) {
+    Promise.resolve()
+        .then(function () {
+            var cred = {};
             if (req.params.key && req.params.secret) {
-                mongoose.model('ApiKey').findOne({ key: req.params.key, secret: req.params.secret }, function (err, api_key) {
-                    if (err) {
-                        cb(mongoHandler.handleError(err), null, null);
-                    } else {
-                        cb(null, api_key, null);
-                    }
-                });
+                return search.index('ApiKey').query({
+                        key: req.params.key,
+                        secret: req.params.secret
+                    })
+                    .then(function (key) {
+                        cred.api_key = key;
+                        return cred;
+                    });
             } else if (req.params.email) {
-                mongoose.model('User').findOne({ email: req.params.email }, function (err, user) {
-                    if (err) {
-                        cb(mongoHandler.handleError(err), null, null);
-                    } else if (user) {
-                        user.isValidPassword(req.params.password, function (pwError, isValid) {
-                            if (pwError) {
-                                cb(pwError, null, user);
-                            } else {
-                                if (isValid) {
-                                    cb(null, null, user);
-                                } else {
-                                    cb(new restify.InvalidCredentialsError(), null, null);
-                                }
-                            }
-                        });
-                    } else {
-                        cb(new restify.InvalidCredentialsError(), null, null);
-                    }
-                });
+                return search.index('User').query({email: req.params.email})
+                    .then(function (user) {
+                        // TODO: check password
+                        cred.user = user;
+                        return cred;
+                    });
             } else if (req.params.single_access_token) {
-                mongoose.model('User').findOne({ single_access_token: req.params.single_access_token, confirmed: false }, function (err, user) {
-                    if (err) {
-                        cb(mongoHandler.handleError(err), null, null);
-                    } else if (user) {
-                        user.confirmUser(function (err) {
-                            if (err) {
-                                cb(mongoHandler.handleError(err), null, null);
-                            } else {
-                                cb(null, null, user);
-                            }
-                        });
-                    } else {
-                        cb(new restify.InvalidCredentialsError(), null, null);
-                    }
-                });
+                return search.index('User').query({
+                        single_access_token: req.params.single_access_token,
+                        confirmed: false
+                    })
+                    .then(function (user) {
+                        // TODO: confirm user
+                        cred.user = user;
+                        return cred;
+                    });
             } else {
-                cb(new restify.InvalidCredentialsError(), null, null);
+                throw new restify.InvalidCredentialsError();
             }
-        },
-        function (api_key, user, cb) {
-            if (api_key) {
-                cb(null, api_key);
-            } else if (user) {
-                mongoose.model('ApiKey').find({ user_uuid: user.uuid }).sort('-issued').exec(function (err, api_keys) {
-                    if (err) {
-                        cb(mongoHandler.handleError(err), null);
-                    } else {
-                        if (api_keys.length > 0) {
-                            cb(null, api_keys[0]);
-                        } else {
-                            mongoose.model('ApiKey').create({ user_uuid: user.uuid }, function (err, api_key) {
-                                if (err) {
-                                    cb(mongoHandler.handleError(err), null);
-                                } else {
-                                    cb(null, api_key);
-                                }
-                            });
-                        }
-                    }
-                });
+        })
+        .then(function (cred) {
+            if (cred.api_key) {
+                return cred;
+            } else if (cred.user) {
+                return search.index('ApiKey').query({user_uuid: user.uuid})
+                    .then(function (key) {
+                        // TODO: create key if not exists
+                        cred.api_key = key;
+                        return cred;
+                    });
             } else {
-                cb(new restify.InvalidCredentialsError(), null, null);
+                throw new restify.InvalidCredentialsError();
             }
-        },
-        function (api_key, cb) {
-            if (!api_key) {
-                cb(new restify.InvalidCredentialsError(), null, null);
+        })
+        .then(function (cred) {
+            if (!cred.api_key) {
+                throw new restify.InvalidCredentialsError();
             } else {
-                mongoose.model('AccessToken').findOne({ api_key: api_key.key }).sort('-issued').exec(function (err, access_token) {
-                    if (err) {
-                        cb(mongoHandler.handleError(err), null, null);
-                    } else {
-                        cb(null, api_key, access_token);
-                    }
-                });
+                return search.index('AccessToken').query({api_key: api_key.key})
+                    .then(function (token) {
+                        // TODO: sort by issued (most recent first)
+                        cred.access_token = token;
+                        return cred;
+                    });
             }
-        },
-        function (api_key, access_token, cb) {
-            if (access_token && access_token.isValid()) {
-                cb(null, access_token);
+        })
+        .then(function (cred) {
+            if (cred.access_token) {
+                // TODO: verify token validity
+                return lmdbResource.sendResOrNotFound(res, cred.access_token, next);
             } else {
-                mongoose.model('AccessToken').create({ api_key: api_key.key }, function (err, access_token) {
-                    if (err) {
-                        cb(mongoHandler.handleError(err), null);
-                    } else {
-                        cb(null, access_token);
-                    }
-                });
+                // TODO: create token
+                throw new restify.InvalidCredentialsError();
             }
-        }
-    ], function (err, access_token) {
-        if (err) {
-            res.send(err);
-            return next();
-        }
-        if (access_token) {
-            res.send(201, access_token);
-        } else {
-            res.send(new restify.InvalidCredentialsError());
-        }
-        next();
-    });
+        })
+        .catch(function (err) {
+            console.log('Auth error', err);
+            return lmdbResource.errorResponse(res, new restify.InvalidCredentialsError());
+        });
 };

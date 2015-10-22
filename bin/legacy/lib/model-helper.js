@@ -23,7 +23,7 @@ module.exports.setup = function (schema, preSaveFunc, preUpdateFunc) {
     };
 
     schema.methods.generateUUID = function () {
-        var uuid = require('./uuid');
+        var uuid = require('./../../../lib/util/uuid');
         this.uuid = uuid.v4();
     };
 

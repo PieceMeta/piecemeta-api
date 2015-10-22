@@ -21,12 +21,12 @@ Promise.promisify(config.load)()
     .then(function (env) {
         lmdbMeta.setEnv(env);
         _env = env;
-        lmdbMeta.registerSchema('Package', require('../models/lmdb/package').Package);
-        lmdbMeta.registerSchema('Channel', require('../models/lmdb/channel').Channel);
-        lmdbMeta.registerSchema('Stream', require('../models/lmdb/stream').Stream);
-        lmdbMeta.registerSchema('AccessToken', require('../models/lmdb/access-token').AccessToken);
-        lmdbMeta.registerSchema('ApiKey', require('../models/lmdb/api-key').ApiKey);
-        lmdbMeta.registerSchema('User', require('../models/lmdb/user').User);
+        lmdbMeta.registerSchema('Package', require('../models/package').Package);
+        lmdbMeta.registerSchema('Channel', require('../models/channel').Channel);
+        lmdbMeta.registerSchema('Stream', require('../models/stream').Stream);
+        lmdbMeta.registerSchema('AccessToken', require('../models/access-token').AccessToken);
+        lmdbMeta.registerSchema('ApiKey', require('../models/api-key').ApiKey);
+        lmdbMeta.registerSchema('User', require('../models/user').User);
     })
     .then(function () {
         var _dbi, resources = ['Package', 'Channel', 'Stream', 'AccessToken', 'ApiKey', 'User'];

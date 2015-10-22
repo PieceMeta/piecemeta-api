@@ -24,22 +24,22 @@ Promise.promisify(config.load)()
                 config.get.mongodb.port + '/' +
                 config.get.mongodb.dbname;
             mongoose.connect(dburl);
-            mongoose.model('User', require('../models/user').User);
-            mongoose.model('ApiKey', require('../models/api-key').ApiKey);
-            mongoose.model('AccessToken', require('../models/access-token').AccessToken);
-            mongoose.model('Channel', require('../models/channel').Channel);
-            mongoose.model('Package', require('../models/package').Package);
-            mongoose.model('Stream', require('../models/stream').Stream);
+            mongoose.model('User', require('legacy/models/user').User);
+            mongoose.model('ApiKey', require('legacy/models/api-key').ApiKey);
+            mongoose.model('AccessToken', require('legacy/models/access-token').AccessToken);
+            mongoose.model('Channel', require('legacy/models/channel').Channel);
+            mongoose.model('Package', require('legacy/models/package').Package);
+            mongoose.model('Stream', require('legacy/models/stream').Stream);
             console.log('Connected to MongoDB at', dburl);
 
             lmdbMeta.setEnv(env);
             lmdbStream.setEnv(env);
-            lmdbMeta.registerSchema('Package', require('../models/lmdb/package').Package);
-            lmdbMeta.registerSchema('Channel', require('../models/lmdb/channel').Channel);
-            lmdbMeta.registerSchema('Stream', require('../models/lmdb/stream').Stream);
-            lmdbMeta.registerSchema('AccessToken', require('../models/lmdb/access-token').AccessToken);
-            lmdbMeta.registerSchema('ApiKey', require('../models/lmdb/api-key').ApiKey);
-            lmdbMeta.registerSchema('User', require('../models/lmdb/user').User);
+            lmdbMeta.registerSchema('Package', require('../models/package').Package);
+            lmdbMeta.registerSchema('Channel', require('../models/channel').Channel);
+            lmdbMeta.registerSchema('Stream', require('../models/stream').Stream);
+            lmdbMeta.registerSchema('AccessToken', require('../models/access-token').AccessToken);
+            lmdbMeta.registerSchema('ApiKey', require('../models/api-key').ApiKey);
+            lmdbMeta.registerSchema('User', require('../models/user').User);
 
         } else {
             throw new Error('Server has not been configured yet. Please run bin/setup.');

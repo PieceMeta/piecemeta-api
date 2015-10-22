@@ -1,30 +1,19 @@
 'use strict';
 
-var mongoose = require('mongoose'),
-    Promise = require('bluebird'),
+var Promise = require('bluebird'),
+    lmdbResource = require('./resource-lmdb'),
     lmdbSys = require('../lib/lmdb/sys'),
     lmdbStream = require('../lib/lmdb/stream'),
-    lmdbResponse = require('../lib/lmdb/response'),
-    mongoHandler = require('../lib/util/mongoose-response');
+    lmdbMeta = require('../lib/lmdb/meta'),
+    search = require('../lib/search');
 
 Promise.longStackTraces();
-Promise.promisifyAll(mongoose.model('Stream'));
 
 module.exports = function (config) {
     return {
         find: function (req, res, next) {
-            var query = {};
-            query = require('../lib/util/query-mapping')(query, req, config);
-            var q = mongoose.model(config.resource).find(query);
-            if (req.contentType() === 'text/csv') {
-                q = q.select('title group frames');
-            } else if (typeof config.select === 'string') {
-                q = q.select(config.select);
-            }
-            q.exec(function (err, data) {
-                if (err) {
-                    res.send(mongoHandler.handleError(err));
-                } else {
+            lmdbResource.performCrud(req, config)
+                .then(function (data) {
                     if (data) {
                         if (req.contentType() === 'text/csv') {
                             var labels = [];
@@ -61,82 +50,77 @@ module.exports = function (config) {
                             }
                             data = [labels].concat(values);
                         }
-                        res.send(200, data);
-                    } else {
-                        var restify = require('restify');
-                        res.send(new restify.NotFoundError());
                     }
-                }
-                next();
-            });
+                    return lmdbResource.sendResOrNotFound(res, data, next);
+                })
+                .catch(function (err) {
+                    return lmdbResource.errorResponse(res, err, next);
+                });
         },
         get: function (req, res, next) {
-            var q = mongoose.model('Stream').findOne({uuid: req.params.uuid});
-            if (typeof config.select === 'string') {
-                q = q.select(config.select);
-            }
-            // TODO: why the fuck can't i use a promise here?! weird exception in node.js
-            q.exec(function (err, data) {
-                Promise.resolve()
-                    .then(function () {
-                        if (err) throw err;
-                    })
-                    .then(function () {
-                        if (data) {
-                            return data;
-                        } else {
-                            var restify = require('restify');
-                            throw new restify.NotFoundError();
-                        }
-                    })
-                    .then(function (data) {
-                        var pkgDbi;
-                        return lmdbSys.openDb(data.package_uuid)
+            search.index('Stream').query({uuid: [req.params.uuid]})
+                .then(function (data) {
+                    if (data && data.hits.length > 0) {
+                        return search.index('Channel').query({uuid: [data.hits[0].document.channel_uuid]})
+                    }
+                })
+                .then(function (data) {
+                    if (data && data.hits.length > 0) {
+                        var _metaDbi, _pkgDbi, _meta;
+                        return lmdbSys.openDb('Stream')
                             .then(function (dbi) {
-                                pkgDbi = dbi;
+                                _metaDbi = dbi;
+                                return lmdbMeta.getMetaData(_metaDbi, req.params.uuid);
+                            })
+                            .then(function (meta) {
+                                _meta = meta;
+                                return lmdbSys.closeDb(_metaDbi);
+                            })
+                            .then(function () {
+                                return lmdbSys.openDb(data.hits[0].document.package_uuid);
+                            })
+                            .then(function (dbi) {
+                                _pkgDbi = dbi;
                                 var conf = {
                                     from: parseInt(req.query.from),
                                     to: parseInt(req.query.to),
                                     skip: parseInt(req.query.skip)
                                 };
-                                return lmdbStream.getStreamData(dbi, data.uuid, conf);
+                                _meta.config = conf;
+                                return lmdbStream.getStreamData(_pkgDbi, req.params.uuid, conf);
                             })
                             .then(function (result) {
                                 var resultLength = result.length;
-                                data = data.toObject();
-                                data.frames = [];
+                                _meta.frames = [];
 
                                 for (var i = 0; i < resultLength; i += 1) {
-                                    var valCount = data.labels.length,
+                                    var valCount = _meta.labels.length,
                                         val = [];
 
                                     for (var v = 0; v < valCount; v += 1) {
                                         val.push(result[i].readFloatLE(v * 4));
                                     }
 
-                                    data.frames.push(val);
+                                    _meta.frames.push(val);
                                 }
 
-                                return lmdbSys.closeDb(pkgDbi);
+                                return lmdbSys.closeDb(_pkgDbi);
                             })
                             .then(function () {
-                                return data;
+                                return _meta;
                             })
                             .catch(function (err) {
                                 console.log(err.stack);
                                 throw err;
                             });
-                    })
-                    .then(function (data) {
-                        res.send(200, data);
-                        next();
-                    })
-                    .catch(function (err) {
-                        console.log(err.stack);
-                        res.send(lmdbResponse.handleError(err));
-                        next();
-                    });
-            });
+                    }
+                })
+                .then(function (data) {
+                    return lmdbResource.sendResOrNotFound(res, data, next);
+                })
+                .catch(function (err) {
+                    lmdbResource.errorResponse(res, err, next);
+                });
         },
         post: function (req, res, next) {
             var object = req.body,
@@ -146,8 +130,9 @@ module.exports = function (config) {
             object.user_uuid = req.user.uuid;
             delete object.frames;
 
-            mongoose.model('Stream')
-                .createAsync(object)
+            req.body = object;
+
+            lmdbResource.performCrud(req, config)
                 .then(function (data) {
                     return lmdbSys.openDb(data.package_uuid)
                         .then(function (dbi) {
@@ -213,13 +198,10 @@ module.exports = function (config) {
                         });
                 })
                 .then(function (data) {
-                    res.send(201, data);
-                    next();
+                    return lmdbResource.sendResOrNotFound(res, data, next);
                 })
                 .catch(function (err) {
-                    console.log(err.stack);
-                    res.send(lmdbResponse.handleError(err));
-                    next();
+                    return lmdbResource.errorResponse(res, err, next);
                 });
         }
     };

@@ -4,21 +4,13 @@
     var users = require('./controllers/users'),
         access_tokens = require('./controllers/access-tokens'),
         res = require('./controllers/resource-lmdb'),
-        streams = require('./controllers/streams'),
-        exports = require('./controllers/exports');
+        streams = require('./controllers/streams');
 
     module.exports = function (config) {
         if (typeof config !== 'object') {
             config = {get: {}};
         }
         return {
-            '/exports/:uuid': {
-                'get': {
-                    controller: exports.get,
-                    scope: 'public',
-                    nocache: true
-                }
-            },
             '/packages': {
                 'get': {
                     controller: res({resource: 'Package', action: 'find'}),
@@ -57,7 +49,8 @@
                     controller: streams({
                         resource: 'Stream',
                         query: {id_mapping: 'channel_uuid'},
-                        select: '-frames'
+                        select: '-frames',
+                        action: 'find'
                     }).find,
                     scope: 'public'
                 }
@@ -87,25 +80,25 @@
             },
             '/streams': {
                 'post': {
-                    controller: streams({}).post,
+                    controller: streams({action:'post'}).post,
                     scope: 'user'
                 }
             },
             '/streams/:uuid/frames': {
                 'get': {
-                    controller: streams({select: 'uuid channel_uuid user_uuid frames frameCount'}).get,
+                    controller: streams({action: 'get'}).get,
                     scope: 'public'
                 }
             },
             '/streams/:uuid/meta': {
                 'get': {
-                    controller: res({resource: 'Stream', select: '-frames', action: 'get'}),
+                    controller: res({resource: 'Stream', action: 'get'}),
                     scope: 'public'
                 }
             },
             '/streams/:uuid': {
                 'get': {
-                    controller: streams({}).get,
+                    controller: res({resource: 'Stream', action: 'get'}),
                     scope: 'public'
                 },
                 'put': {
@@ -136,7 +129,7 @@
                     scope: 'user'
                 },
                 'delete': {
-                    controller: users.del,
+                    controller: res({resource: 'User', action: 'del'}),
                     overrideVerb: 'del',
                     scope: 'user'
                 }

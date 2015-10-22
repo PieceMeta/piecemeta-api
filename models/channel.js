@@ -1,22 +1,16 @@
 'use strict';
 
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    Channel = new Schema({
+var Channel = {
 
-        uuid: {type: String, unique: true},
-        namespace: {type: String, required: true},
-        package_uuid: {type: String, index: true, required: true},
-        user_uuid: {type: String, index: true, required: true},
-        title: {type: String, required: true},
-        parent_channel_uuid: {type: String, index: true},
+    uuid: {type: 'string', index: true, unique: true},
+    user_uuid: {type: 'string', index: true, required: true},
+    package_uuid: {type: 'string', index: true, required: true},
+    title: {type: 'string', required: true},
+    description: {type: 'string'},
 
-        created: Date,
-        updated: Date
+    created: 'date',
+    updated: 'date'
 
-    }, {
-        autoindex: process.env.NODE_ENV !== 'production',
-        id: false
-    });
+};
 
-module.exports.Channel = require('../lib/util/model-helper').setup(Channel);
+module.exports.Channel = Channel;

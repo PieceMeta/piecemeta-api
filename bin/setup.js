@@ -262,7 +262,7 @@ function createAdminUser(callback) {
         },
         function (data, config, cb) {
             mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.dbname);
-            mongoose.model('User', require('../models/user').User);
+            mongoose.model('User', require('legacy/models/user').User);
             var user = {
                 name: data.name,
                 email: data.email,
@@ -274,7 +274,7 @@ function createAdminUser(callback) {
         },
         function (user, cb) {
             console.log(user);
-            mongoose.model('ApiKey', require('../models/api-key').ApiKey);
+            mongoose.model('ApiKey', require('legacy/models/api-key').ApiKey);
             mongoose.model('ApiKey').create({user_uuid: user.uuid, scopes: ['user', 'admin']}, cb);
         }
     ], function (err, apikey) {

@@ -105,9 +105,9 @@ describe("AccessToken controller", function () {
                     }
                 },
                 function (cb) {
-                    mongoose.model('AccessToken', require('../../models/access-token').AccessToken);
-                    mongoose.model('ApiKey', require('../../models/api-key').ApiKey);
-                    mongoose.model('User', require('../../models/user').User);
+                    mongoose.model('AccessToken', require('../../bin/legacy/models/access-token').AccessToken);
+                    mongoose.model('ApiKey', require('../../bin/legacy/models/api-key').ApiKey);
+                    mongoose.model('User', require('../../bin/legacy/models/user').User);
                     cb(null);
                 },
                 function (cb) {

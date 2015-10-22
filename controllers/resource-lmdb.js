@@ -9,17 +9,17 @@ module.exports = function (config) {
     assert.object(config, 'Resource config');
 
     return function (req, res, next) {
-        performCrud(req, config)
+        module.exports.performCrud(req, config)
             .then(function (result) {
-                sendResOrNotFound(res, result, next);
+                module.exports.sendResOrNotFound(res, result, next);
             })
             .catch(function (err) {
-                errorResponse(res, err, next);
+                module.exports.errorResponse(res, err, next);
             });
     };
 };
 
-function performCrud(req, config) {
+module.exports.performCrud = function (req, config) {
     assert.object(req, 'Request');
     assert.object(config, 'Resource config');
 
@@ -51,10 +51,16 @@ function performCrud(req, config) {
         })
         .then(function () {
             return result;
+        })
+        .catch(function (err) {
+            return lmdbSys.closeDb(dbi)
+                .then(function () {
+                    throw err;
+                });
         });
-}
+};
 
-function sendResOrNotFound(res, result, next) {
+module.exports.sendResOrNotFound = function (res, result, next) {
     if (result) {
         res.send(200, result);
     } else {
@@ -62,9 +68,9 @@ function sendResOrNotFound(res, result, next) {
         res.send(new restify.NotFoundError());
     }
     next();
-}
+};
 
-function errorResponse(res, err, next) {
+module.exports.errorResponse = function (res, err, next) {
     res.send(lmdbHandler.handleError(err));
     next();
-}
+};
