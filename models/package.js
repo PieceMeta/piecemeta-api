@@ -1,15 +1,22 @@
 'use strict';
 
-var Package = {
+var LmdbModel = require('../lib/lmdb/model');
 
-    uuid: {type: 'string', index: true, unique: true},
-    user_uuid: {type: 'string', index: true, required: true},
-    title: {type: 'string', required: true},
-    description: {type: 'string'},
+class Package extends LmdbModel {
+    constructor() {
+        this.schema = {
 
-    created: 'date',
-    updated: 'date'
+            uuid: {type: String, minLength: 1, index: true},
+            user_uuid: {type: String, minLength: 1, index: true},
+            title: {type: String, minLength: 1},
+            description: String,
 
-};
+            created: Date,
+            updated: Date
 
-module.exports.Package = Package;
+        };
+        super();
+    }
+}
+
+module.exports = Package;

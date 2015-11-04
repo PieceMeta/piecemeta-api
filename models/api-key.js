@@ -1,30 +1,36 @@
 'use strict';
 
-var ApiKey = {
+var LmdbModel = require('../lib/lmdb/model');
 
-    uuid: {type: 'string', primary: true},
-    key: {type: 'string', index: true},
-    secret: {type: 'string', index: true},
-    user_uuid: {type: 'string', index: true, required: true},
-    device_uuid: {type: 'string'},
-    scopes: {type: 'array', default: ['user'], index: true},
-    active: {type: 'boolean', index: true, default: true},
+class ApiKey extends LmdbModel {
+    constructor() {
+        this.schema = {
 
-    created: 'date',
-    updated: 'date'
+            uuid: {type: 'string', primary: true},
+            key: {type: 'string', index: true},
+            secret: {type: 'string', index: true},
+            user_uuid: {type: 'string', index: true, required: true},
+            device_uuid: {type: 'string'},
+            scopes: {type: 'array', default: ['user'], index: true},
+            active: {type: 'boolean', index: true, default: true},
 
-};
+            created: 'date',
+            updated: 'date'
 
-module.exports.isScopeAllowed = function (scope) {
-    return this.scopes.indexOf(scope) > -1;
-};
+        };
+        super();
+    }
 
-module.exports.generateApiCredentials = function (obj) {
-    var secureRandom = require('secure-random'),
-        sha1 = require('sha1');
-    obj.key = sha1(secureRandom.randomBuffer(8).toString('hex') + obj.email + secureRandom.randomBuffer(8).toString('hex'));
-    obj.secret = secureRandom.randomBuffer(128).toString('hex');
-    return;
-};
+    isScopeAllowed(scope) {
+        return this.doc.scopes.indexOf(scope) > -1;
+    }
 
-module.exports.ApiKey = ApiKey;
+    generateApiCredentials() {
+        var secureRandom = require('secure-random'),
+            sha1 = require('sha1');
+        this.doc.key = sha1(secureRandom.randomBuffer(8).toString('hex') + this.doc.email + secureRandom.randomBuffer(8).toString('hex'));
+        this.doc.secret = secureRandom.randomBuffer(128).toString('hex');
+    }
+}
+
+module.exports = ApiKey;

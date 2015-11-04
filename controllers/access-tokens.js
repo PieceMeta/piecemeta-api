@@ -72,10 +72,14 @@ module.exports.post = function (req, res, next) {
             if (!cred.api_key) {
                 throw new restify.InvalidCredentialsError();
             } else {
-                return search.index('AccessToken').query({api_key: api_key.key})
-                    .then(function (token) {
-                        // TODO: sort by issued (most recent first)
-                        cred.access_token = token;
+                return search.index('AccessToken').query({api_key: cred.api_key.key})
+                    .then(function (tokens) {
+                        if (tokens.length > 0) {
+                            tokens.sort(function (a, b) {
+                                return b.issued - a.issued;
+                            });
+                            cred.access_token = tokens[0];
+                        }
                         return cred;
                     });
             }
