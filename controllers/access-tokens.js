@@ -53,13 +53,13 @@ module.exports.post = function (req, res, next) {
             }
         }
 
-        // Throw error if no key is found or could not be created (no user)
+        // Throw error if key is inactive, no key is found or could not be created (no user)
 
-        if (!cred.api_key) {
+        if (!cred.api_key || !cred.api_key.active) {
             throw new restify.InvalidCredentialsError();
         }
 
-        // Get the access token(s) for the current key
+        // Get the access token(s) for the current key and grab the most recent
 
         let tokens = yield search.index('AccessToken').query({api_key: cred.api_key.key});
         tokens.sort((a, b) => {
@@ -68,7 +68,6 @@ module.exports.post = function (req, res, next) {
         cred.access_token = tokens.length > 0 ? tokens[0] : null;
 
         // Respond with new or current access token (create if invalid)
-        // TODO: check if key is active before creating token
 
         if (cred.access_token && accessTokenModel.isValid(cred.access_token)) {
             return lmdbResource.sendResOrNotFound(res, cred.access_token, next);

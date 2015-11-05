@@ -84,7 +84,7 @@ Promise.coroutine(function* () {
     }
 
     server.listen(config.get.api_server.port, config.get.api_server.host, () => {
-        console.info(`${server.name} listening at ${server.url}`);
+        console.info(`${server.name}: ${server.url}`);
     });
 
 })();

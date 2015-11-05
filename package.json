@@ -11,6 +11,7 @@
     "babyparse": "~0.4.3",
     "bluebird": "^3.0.5",
     "checksum": "^0.1.1",
+    "commander": "^2.9.0",
     "exectimer": "^1.0.2",
     "fs-extra": "^0.26.2",
     "js2xmlparser": "^1.0.0",

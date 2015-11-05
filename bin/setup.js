@@ -2,232 +2,201 @@
 
 'use strict';
 
-var async = require('async'),
+var Promise = require('bluebird'),
     path = require('path'),
-    prompt = require('prompt');
+    prompt = require('prompt'),
+    search = require('../lib/search'),
+    lmdbSys = require('../lib/lmdb/sys'),
+    lmdbMeta = require('../lib/lmdb/meta');
+
+Promise.promisifyAll(prompt);
 
 prompt.message = "";
 prompt.delimiter = "";
 prompt.start();
 
-async.waterfall([
-    function (cb) {
-        console.log('\nWelcome to the PieceMeta API Server setup.'.yellow);
-        loadConfig(cb);
-    },
-    function (config, cb) {
-        if (config) {
-            cb(null);
-        } else {
-            initialSetup(cb);
-        }
-    },
-    function (cb) {
-        createAdminUser(cb);
+Promise.coroutine(function* () {
+    console.log('\nWelcome to the PieceMeta API Server setup.'.yellow);
+
+    var config = yield loadConfig();
+
+    if (!config) {
+        yield serverSetup();
     }
-], function (err) {
-    console.log('\n');
-    if (err) {
-        console.log('PieceMeta API Server setup failed.'.red, err);
-        process.exit(1);
-    } else {
-        console.log('PieceMeta API Server setup successful.'.green);
-        process.exit(0);
-    }
+
+    yield createAdminUser();
+
+    console.log('PieceMeta API Server setup successful.'.green);
+    process.exit(0);
+})()
+.catch(function (err) {
+    console.log(`PieceMeta API Server setup failed: ${err.message}`.red);
+    process.exit(1);
 });
 
-function initialSetup(callback) {
-    var config = {
-        lmdb: null,
-        api_server: null,
-        mongodb: null,
-        mailer: null
-    };
-    async.waterfall([
-        function (cb) {
-            console.log('You will now need to provide a little info to be able to start the server.');
-            cb();
-        },
-        function (cb) {
-            console.log('\nAPI SERVER\n'.cyan);
-            prompt.get({
-                properties: {
-                    host: {
-                        description: 'Enter the API Server\'s hostname',
-                        type: 'string',
-                        default: 'localhost',
-                        required: true
-                    },
-                    secure: {
-                        description: 'Is the API Server accessible via HTTPS?',
-                        type: 'boolean',
-                        default: false,
-                        required: true
-                    }
+function serverSetup() {
+    return Promise.coroutine(function* () {
+        var config = {
+            lmdb: null,
+            api_server: null,
+            mongodb: null,
+            mailer: null
+        };
+
+        console.log('You will now need to provide a little info to be able to start the server.');
+
+        console.log('\nAPI SERVER\n'.cyan);
+
+        config.api_server = yield prompt.getAsync({
+            properties: {
+                host: {
+                    description: 'Enter the API Server\'s hostname',
+                    type: 'string',
+                    default: 'localhost',
+                    required: true
+                },
+                secure: {
+                    description: 'Is the API Server accessible via HTTPS?',
+                    type: 'boolean',
+                    default: false,
+                    required: true
                 }
-            }, function (err, data) {
-                if (data) {
-                    config.api_server = data;
-                    var uuid = require('../lib/util/uuid');
-                    config.api_server.uuid = uuid.v4();
+            }
+        });
+
+        var uuid = require('../lib/util/uuid');
+        config.api_server.uuid = uuid.v4();
+
+        config.api_server.port = yield prompt.getAsync({
+            properties: {
+                port: {
+                    description: 'Enter the API Server\'s port',
+                    type: 'number',
+                    pattern: /^[0-9]+$/,
+                    message: 'Port must be a number',
+                    default: config.api_server.secure ? 4443 : 8080,
+                    required: true
                 }
-                cb(err);
-            });
-        },
-        function (cb) {
-            prompt.get({
-                properties: {
-                    port: {
-                        description: 'Enter the API Server\'s port',
-                        type: 'number',
-                        pattern: /^[0-9]+$/,
-                        message: 'Port must be a number',
-                        default: config.api_server.secure ? 4443 : 8080,
-                        required: true
-                    }
+            }
+        });
+
+        console.log('\nMONGODB\n'.cyan);
+
+        config.mongodb = yield prompt.getAsync({
+            properties: {
+                host: {
+                    description: 'Enter the MongoDB hostname',
+                    type: 'string',
+                    default: 'localhost',
+                    required: true
+                },
+                port: {
+                    description: 'Enter the MongoDB port',
+                    type: 'number',
+                    pattern: /^[0-9]+$/,
+                    message: 'Port must be a number',
+                    default: 27017,
+                    required: true
+                },
+                dbname: {
+                    description: 'Database name',
+                    type: 'string',
+                    default: 'piecemeta-api',
+                    required: true
+                },
+                user: {
+                    description: 'Database user (optional)',
+                    type: 'string'
+                },
+                pass: {
+                    description: 'Database password (optional)',
+                    type: 'string',
+                    hidden: true
                 }
-            }, function (err, data) {
-                if (data) {
-                    config.api_server.port = data.port;
+            }
+        });
+
+        console.log('\nLMDB\n'.cyan);
+
+        config.lmdb = yield prompt.getAsync({
+            properties: {
+                path: {
+                    description: 'Enter the LMDB data path',
+                    type: 'string',
+                    default: path.resolve('../lmdb'),
+                    required: true
+                },
+                mapsize: {
+                    description: 'Enter the mapsize (in MB)',
+                    type: 'number',
+                    pattern: /^[0-9]+$/,
+                    message: 'Mapsize must be a number',
+                    default: 4096,
+                    required: true
+                },
+                maxdbs: {
+                    description: 'Maximum number of DBs (each data package uses a db)',
+                    type: 'number',
+                    pattern: /^[0-9]+$/,
+                    message: 'Max DBs must be a number',
+                    default: 256,
+                    required: true
                 }
-                cb(err);
-            });
-        },
-        function (cb) {
-            console.log('\nMONGODB\n'.cyan);
-            prompt.get({
-                properties: {
-                    host: {
-                        description: 'Enter the MongoDB hostname',
-                        type: 'string',
-                        default: 'localhost',
-                        required: true
-                    },
-                    port: {
-                        description: 'Enter the MongoDB port',
-                        type: 'number',
-                        pattern: /^[0-9]+$/,
-                        message: 'Port must be a number',
-                        default: 27017,
-                        required: true
-                    },
-                    dbname: {
-                        description: 'Database name',
-                        type: 'string',
-                        default: 'piecemeta-api',
-                        required: true
-                    },
-                    user: {
-                        description: 'Database user (optional)',
-                        type: 'string'
-                    },
-                    pass: {
-                        description: 'Database password (optional)',
-                        type: 'string',
-                        hidden: true
-                    }
+            }
+        });
+
+        console.log('\nEMAIL NOTIFICATIONS\n'.cyan);
+
+        config.mailer = yield prompt.getAsync({
+            properties: {
+                address: {
+                    description: 'Send notifications from this address',
+                    type: 'string',
+                    required: true
+                },
+                host: {
+                    description: 'SMTP Host',
+                    type: 'string',
+                    required: true
+                },
+                port: {
+                    description: 'SMTP Port',
+                    type: 'number',
+                    pattern: /^[0-9]+$/,
+                    message: 'Port must be a number',
+                    default: 465,
+                    required: true
+                },
+                secure: {
+                    description: 'Secure connection?',
+                    type: 'boolean',
+                    default: true,
+                    required: true
+                },
+                user: {
+                    description: 'SMTP user (optional)',
+                    type: 'string'
+                },
+                pass: {
+                    description: 'SMTP password (optional)',
+                    type: 'string',
+                    hidden: true
                 }
-            }, function (err, data) {
-                if (data) {
-                    config.mongodb = data;
-                }
-                cb(err);
-            });
-        },
-        function (cb) {
-            console.log('\nLMDB\n'.cyan);
-            prompt.get({
-                properties: {
-                    path: {
-                        description: 'Enter the LMDB data path',
-                        type: 'string',
-                        default: path.resolve('../lmdb'),
-                        required: true
-                    },
-                    mapsize: {
-                        description: 'Enter the mapsize (in MB)',
-                        type: 'number',
-                        pattern: /^[0-9]+$/,
-                        message: 'Mapsize must be a number',
-                        default: 4096,
-                        required: true
-                    },
-                    maxdbs: {
-                        description: 'Maximum number of DBs (each data package uses a db)',
-                        type: 'number',
-                        pattern: /^[0-9]+$/,
-                        message: 'Max DBs must be a number',
-                        default: 256,
-                        required: true
-                    }
-                }
-            }, function (err, data) {
-                if (data) {
-                    config.lmdb = data;
-                }
-                cb(err);
-            });
-        },
-        function (cb) {
-            console.log('\nEMAIL NOTIFICATIONS\n'.cyan);
-            prompt.get({
-                properties: {
-                    address: {
-                        description: 'Send notifications from this address',
-                        type: 'string',
-                        required: true
-                    },
-                    host: {
-                        description: 'SMTP Host',
-                        type: 'string',
-                        required: true
-                    },
-                    port: {
-                        description: 'SMTP Port',
-                        type: 'number',
-                        pattern: /^[0-9]+$/,
-                        message: 'Port must be a number',
-                        default: 465,
-                        required: true
-                    },
-                    secure: {
-                        description: 'Secure connection?',
-                        type: 'boolean',
-                        default: true,
-                        required: true
-                    },
-                    user: {
-                        description: 'SMTP user (optional)',
-                        type: 'string'
-                    },
-                    pass: {
-                        description: 'SMTP password (optional)',
-                        type: 'string',
-                        hidden: true
-                    }
-                }
-            }, function (err, data) {
-                if (data) {
-                    config.mailer = data;
-                }
-                cb(err);
-            });
-        },
-        function (cb) {
-            console.log('\nWriting config.json...\n');
-            saveConfig(config, cb);
-        }
-    ], function (err) {
-        callback(err);
-    });
+            }
+        });
+
+        console.log('\nWriting config.json...\n');
+
+        yield saveConfig(config);
+    })();
 }
 
-function createAdminUser(callback) {
-    var mongoose = require('mongoose');
-    async.waterfall([
-        function (cb) {
-            console.log('\nCREATE ADMIN USER\n'.cyan);
-            prompt.get({
+function createAdminUser() {
+    return Promise.coroutine(function* () {
+        console.log('\nCREATE ADMIN USER\n'.cyan);
+
+        var config = yield loadConfig(),
+            user = yield prompt.getAsync({
                 properties: {
                     name: {
                         description: 'Name',
@@ -253,48 +222,43 @@ function createAdminUser(callback) {
                         hidden: true
                     }
                 }
-            }, cb);
-        },
-        function (data, cb) {
-            loadConfig(function (err, config) {
-                cb(err, data, config);
             });
-        },
-        function (data, config, cb) {
-            mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.dbname);
-            mongoose.model('User', require('legacy/models/user').User);
-            var user = {
-                name: data.name,
-                email: data.email,
-                password: data.password,
-                confirmed: true
-            };
-            console.log(user);
-            mongoose.model('User').create(user, cb);
-        },
-        function (user, cb) {
-            console.log(user);
-            mongoose.model('ApiKey', require('legacy/models/api-key').ApiKey);
-            mongoose.model('ApiKey').create({user_uuid: user.uuid, scopes: ['user', 'admin']}, cb);
-        }
-    ], function (err, apikey) {
-        console.log(apikey);
-        callback(err);
-    });
+
+        user.confirmed = true;
+
+        yield search.setBasepath('../index');
+        var lmdbEnv = yield lmdbSys.openEnv(
+            config.lmdb.path,
+            config.lmdb.mapsize * 1024 * 1024,
+            config.lmdb.maxdbs
+        );
+        lmdbMeta.setEnv(lmdbEnv);
+        lmdbMeta.registerSchema('User', require('../models/user'));
+        lmdbMeta.registerSchema('ApiKey', require('../models/api-key'));
+
+        var dbi = yield lmdbSys.openDb('User'),
+            userResult = yield lmdbMeta.createMetaData(dbi, 'User', user);
+        yield lmdbSys.closeDb(dbi);
+        dbi = yield lmdbSys.openDb('ApiKey');
+        yield lmdbMeta.createMetaData(dbi, 'ApiKey', {user_uuid: userResult.uuid, scopes: ['user', 'admin']});
+        yield lmdbSys.closeDb(dbi);
+    })();
 }
 
-function loadConfig(callback) {
+function loadConfig() {
     var fs = require('fs'),
         path = require('path');
-    fs.readFile(path.join(__dirname, '..', 'config.json'), function (err, data) {
-        callback(err && err.code !== 'ENOENT' ? err : null, data ? JSON.parse(data) : null);
-    });
+    return Promise.promisify(fs.readFile)(path.join(__dirname, '..', 'config.json'))
+        .then(function (data) {
+            return data ? JSON.parse(data) : null;
+        })
+        .catch(function () {
+            return null;
+        });
 }
 
-function saveConfig(config, callback) {
+function saveConfig(config) {
     var fs = require('fs'),
         path = require('path');
-    fs.writeFile(path.join(__dirname, '..', 'config.json'), JSON.stringify(config, null, '\t'), function (err) {
-        callback(err);
-    });
+    return Promise.promisify(fs.writeFile)(path.join(__dirname, '..', 'config.json'), JSON.stringify(config, null, '\t'));
 }
