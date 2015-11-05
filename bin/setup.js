@@ -5,9 +5,9 @@
 var Promise = require('bluebird'),
     path = require('path'),
     prompt = require('prompt'),
-    search = require('../lib/search'),
-    lmdbSys = require('../lib/lmdb/sys'),
-    lmdbMeta = require('../lib/lmdb/meta');
+    search = require('picemeta-lmdb/lib/search'),
+    lmdbSys = require('piecemeta-lmdb/lib/sys'),
+    lmdbMeta = require('piecemeta-lmdb/lib/meta');
 
 Promise.promisifyAll(prompt);
 
@@ -233,8 +233,8 @@ function createAdminUser() {
             config.lmdb.maxdbs
         );
         lmdbMeta.setEnv(lmdbEnv);
-        lmdbMeta.registerSchema('User', require('../models/user'));
-        lmdbMeta.registerSchema('ApiKey', require('../models/api-key'));
+        lmdbMeta.registerSchema('User', require('piecemeta-lmdb/models/user'));
+        lmdbMeta.registerSchema('ApiKey', require('piecemeta-lmdb/models/api-key'));
 
         var dbi = yield lmdbSys.openDb('User'),
             userResult = yield lmdbMeta.createMetaData(dbi, 'User', user);

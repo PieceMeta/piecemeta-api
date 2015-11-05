@@ -10,17 +10,9 @@
     "assert-plus": "^0.1.5",
     "babyparse": "~0.4.3",
     "bluebird": "^3.0.5",
-    "checksum": "^0.1.1",
-    "commander": "^2.9.0",
     "exectimer": "^1.0.2",
-    "fs-extra": "^0.26.2",
     "js2xmlparser": "^1.0.0",
-    "mongoose": "4.2.4",
-    "mongoose-unique-validator": "~0.6.0",
     "msgpack": "^1.0.2",
-    "node-constants": "0.0.2",
-    "node-lmdb": "https://github.com/xygroup/node-lmdb.git",
-    "node-schema-object": "^2.0.1",
     "nodemailer": "^1.8.0",
     "piecemeta-apiclient": "~1.0.3",
     "piecemeta-lmdb": "https://github.com/PieceMeta/node-piecemeta-lmdb.git",
@@ -29,20 +21,8 @@
     "restify": "~4.0.3",
     "sanitizer": "^0.1.2",
     "se7ensky-restify-preflight": "^0.1.7",
-    "search-index": "^0.6.14",
-    "secure-random": "~1.1.1",
-    "sha1": "~1.1.0",
-    "validator": "^4.1.0",
     "xml2js": "^0.4.13",
     "xmlbuilder": "^4.0.0"
-  },
-  "devDependencies": {
-    "chai": "~3.3.0",
-    "lorem-hipsum": "^0.1.7",
-    "mocha": "^2.3.3",
-    "mocha-mongoose": "~1.1.0",
-    "mongodb": "~2.0.46",
-    "sinon": "^1.17.1"
   },
   "stability": "unstable"
 }

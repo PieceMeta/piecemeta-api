@@ -4,10 +4,10 @@
 
 var Promise = require('bluebird'),
     lmdb = require('node-lmdb'),
-    lmdbSys = require('../lib/lmdb/sys'),
-    lmdbMeta = require('../lib/lmdb/meta'),
+    lmdbSys = require('piecemeta-lmdb/lib/sys'),
+    lmdbMeta = require('piecemeta-lmdb/lib/meta'),
     msgpack = require('msgpack'),
-    search = require('../lib/search'),
+    search = require('piecemeta-lmdb/lib/search'),
     config = require('../lib/config'),
     _env;
 
@@ -28,12 +28,12 @@ Promise.coroutine(function* () {
         config.get.lmdb.maxdbs
     );
     lmdbMeta.setEnv(lmdbEnv);
-    lmdbMeta.registerSchema('Package', require('../models/package'));
-    lmdbMeta.registerSchema('Channel', require('../models/channel'));
-    lmdbMeta.registerSchema('Stream', require('../models/stream'));
-    lmdbMeta.registerSchema('AccessToken', require('../models/access-token'));
-    lmdbMeta.registerSchema('ApiKey', require('../models/api-key'));
-    lmdbMeta.registerSchema('User', require('../models/user'));
+    lmdbMeta.registerSchema('Package', require('piecemeta-lmdb/models/package'));
+    lmdbMeta.registerSchema('Channel', require('piecemeta-lmdb/models/channel'));
+    lmdbMeta.registerSchema('Stream', require('piecemeta-lmdb/models/stream'));
+    lmdbMeta.registerSchema('AccessToken', require('piecemeta-lmdb/models/access-token'));
+    lmdbMeta.registerSchema('ApiKey', require('piecemeta-lmdb/models/api-key'));
+    lmdbMeta.registerSchema('User', require('piecemeta-lmdb/models/user'));
 
     yield Promise.map(['Package', 'Channel', 'Stream', 'AccessToken', 'ApiKey', 'User'], function (resource) {
         return Promise.coroutine(function* () {
