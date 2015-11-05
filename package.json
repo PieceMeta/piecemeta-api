@@ -9,17 +9,17 @@
   "dependencies": {
     "assert-plus": "^0.1.5",
     "babyparse": "~0.4.3",
-    "bluebird": "^2.10.2",
+    "bluebird": "^3.0.5",
     "checksum": "^0.1.1",
     "exectimer": "^1.0.2",
-    "fs-extra": "^0.24.0",
+    "fs-extra": "^0.26.2",
     "js2xmlparser": "^1.0.0",
-    "mongoose": "4.1.11",
-    "mongoose-unique-validator": "~0.5.1",
+    "mongoose": "4.2.4",
+    "mongoose-unique-validator": "~0.6.0",
     "msgpack": "^1.0.2",
     "node-constants": "0.0.2",
     "node-lmdb": "https://github.com/xygroup/node-lmdb.git",
-    "node-schema-object": "^0.9.7",
+    "node-schema-object": "^2.0.1",
     "nodemailer": "^1.8.0",
     "piecemeta-apiclient": "~1.0.3",
     "prompt": "^0.2.14",
@@ -32,7 +32,7 @@
     "sha1": "~1.1.0",
     "validator": "^4.1.0",
     "xml2js": "^0.4.13",
-    "xmlbuilder": "^3.1.0"
+    "xmlbuilder": "^4.0.0"
   },
   "devDependencies": {
     "chai": "~3.3.0",
