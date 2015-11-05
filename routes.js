@@ -1,15 +1,11 @@
 (function () {
     'use strict';
 
-    var users = require('./controllers/users'),
-        access_tokens = require('./controllers/access-tokens'),
+    var access_tokens = require('./controllers/access-tokens'),
         res = require('./controllers/resource-lmdb'),
         streams = require('./controllers/streams');
 
-    module.exports = function (config) {
-        if (typeof config !== 'object') {
-            config = {get: {}};
-        }
+    module.exports = function () {
         return {
             '/packages': {
                 'get': {
@@ -115,17 +111,17 @@
             },
             '/users': {
                 'post': {
-                    controller: users.post,
+                    controller: res({resource: 'User', action: 'post'}),
                     scope: 'public'
                 }
             },
             '/users/:uuid': {
                 'get': {
-                    controller: users.get,
+                    controller: res({resource: 'User', action: 'get'}),
                     scope: 'public'
                 },
                 'put': {
-                    controller: users.put,
+                    controller: res({resource: 'User', action: 'put'}),
                     scope: 'user'
                 },
                 'delete': {

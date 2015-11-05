@@ -8,11 +8,9 @@
   "engines": "~4.2.0",
   "dependencies": {
     "assert-plus": "^0.1.5",
-    "async": "^1.4.2",
     "babyparse": "~0.4.3",
     "bluebird": "^2.10.2",
     "checksum": "^0.1.1",
-    "co": "^4.6.0",
     "exectimer": "^1.0.2",
     "fs-extra": "^0.24.0",
     "js2xmlparser": "^1.0.0",
