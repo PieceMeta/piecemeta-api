@@ -2,9 +2,9 @@
 
 var assert = require('assert-plus'),
     Promise = require('bluebird'),
-    lmdbSys = require('../lib/lmdb/sys'),
-    lmdbMeta = require('../lib/lmdb/meta'),
-    lmdbHandler = require('../lib/lmdb/response');
+    lmdbSys = require('piecemeta-lmdb/lib/sys'),
+    lmdbMeta = require('piecemeta-lmdb/lib/meta'),
+    lmdbHandler = require('piecemeta-lmdb/lib/response');
 
 module.exports = function (config) {
     assert.object(config, 'Resource config');

@@ -2,10 +2,10 @@
 
 var Promise = require('bluebird'),
     lmdbResource = require('./resource-lmdb'),
-    lmdbSys = require('../lib/lmdb/sys'),
-    lmdbStream = require('../lib/lmdb/stream'),
-    lmdbMeta = require('../lib/lmdb/meta'),
-    search = require('../lib/search');
+    lmdbSys = require('piecemeta-lmdb/lib/sys'),
+    lmdbStream = require('piecemeta-lmdb/lib/stream'),
+    lmdbMeta = require('piecemeta-lmdb/lib/meta'),
+    search = require('piecemeta-lmdb/lib/search');
 
 Promise.longStackTraces();
 

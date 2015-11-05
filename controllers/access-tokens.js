@@ -3,10 +3,10 @@
 var restify = require('restify'),
     Promise = require('bluebird'),
     lmdbResource = require('./resource-lmdb'),
-    userModel = require('../models/user'),
-    apiKeyModel = require('../models/api-key'),
-    accessTokenModel = require('../models/access-token'),
-    search = require('../lib/search');
+    userModel = require('piecemeta-lmdb/model/user'),
+    apiKeyModel = require('piecemeta-lmdb/model/api-key'),
+    accessTokenModel = require('piecemeta-lmdb/model/access-token'),
+    search = require('piecemeta-lmdb/lib/search');
 
 module.exports.post = function (req, res, next) {
     return Promise.coroutine(function* () {

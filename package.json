@@ -23,6 +23,7 @@
     "node-schema-object": "^2.0.1",
     "nodemailer": "^1.8.0",
     "piecemeta-apiclient": "~1.0.3",
+    "piecemeta-lmdb": "https://github.com/PieceMeta/node-piecemeta-lmdb.git",
     "prompt": "^0.2.14",
     "request": "^2.51.0",
     "restify": "~4.0.3",
