@@ -6,6 +6,7 @@
         preflightEnabler = require('se7ensky-restify-preflight'),
         urlExtParser = require('./lib/parsers/pre/urlext-parser'),
         bodyParser = require('./lib/parsers/body-parser'),
+        msgpackFormatter = require('./lib/formatters/msgpack-formatter'),
         xmlFormatter = require('./lib/formatters/xml-formatter'),
         csvFormatter = require('./lib/formatters/csv-formatter'),
         tokenAuth = require('./lib/auth/token-auth'),
@@ -70,15 +71,14 @@
                 name: "PieceMeta API Server",
                 version: require("./package.json").version,
                 formatters: {
-                    'application/msgpack': function formatMsgPack(req, res, body) {
-                        var msgPack = require('msgpack');
-                        return msgPack.pack(body);
+                    'application/msgpack': function formatMsgPack(req, res, body, cb) {
+                        return msgpackFormatter(req, res, body, cb);
                     },
                     'application/xml': function formatXml(req, res, body) {
-                        return xmlFormatter(req, res, body);
+                        return xmlFormatter(req, res, body, cb);
                     },
                     'text/csv': function formatCsv(req, res, body) {
-                        return csvFormatter(req, res, body);
+                        return csvFormatter(req, res, body, cb);
                     }
                 }
             });
