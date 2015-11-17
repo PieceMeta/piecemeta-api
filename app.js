@@ -2,6 +2,8 @@
     'use strict';
 
     var restify = require('restify'),
+        cluster = require('cluster'),
+        numCPUs = require('os').cpus().length,
         mongoose = require('mongoose'),
         preflightEnabler = require('se7ensky-restify-preflight'),
         urlExtParser = require('./lib/parsers/pre/urlext-parser'),
@@ -17,9 +19,24 @@
         routes = require('./routes')(),
         pmx, restify;
 
+
     async.waterfall([
         function (cb) {
             config.load(cb);
+        },
+        function (cb) {
+            if (cluster.isMaster && config.get.api_server.cluster) {
+                var workers = config.get.api_server.numWorkers > 0 ? config.get.api_server.numWorkers : numCPUs;
+                for (var i = 0; i < workers; i++) {
+                    console.log('forking worker ' + i);
+                    cluster.fork();
+                }
+                cluster.on('exit', function (worker, code, signal) {
+                    console.log('worker ' + worker.process.pid + ' died');
+                });
+            } else {
+                cb(null);
+            }
         },
         function (cb) {
             if (config.get) {

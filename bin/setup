@@ -65,6 +65,18 @@ function initialSetup (callback) {
                         type: 'boolean',
                         default: false,
                         required: true
+                    },
+                    cluster: {
+                        description: 'Run the API server as a cluster (recommended)?',
+                        type: 'boolean',
+                        default: true,
+                        required: true
+                    },
+                    numWorkers: {
+                        description: 'How many workers should the cluster run (enter 0 to select automatically at startup)??',
+                        type: 'number',
+                        default: require('os').cpus().length,
+                        required: true
                     }
                 }
             }, function (err, data) {
