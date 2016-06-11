@@ -3,4 +3,5 @@ node_modules/
 config.json
 lmdb/*
 index/*
+data/*
 !.gitkeep
