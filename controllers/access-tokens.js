@@ -2,11 +2,11 @@
 
 var restify = require('restify'),
     Promise = require('bluebird'),
+    lmdb = require('../lib/lmdb'),
     lmdbResource = require('./resource-lmdb'),
-    userModel = require('piecemeta-lmdb/model/user'),
-    apiKeyModel = require('piecemeta-lmdb/model/api-key'),
-    accessTokenModel = require('piecemeta-lmdb/model/access-token'),
-    search = require('piecemeta-lmdb/lib/search');
+    userModel = require('piecemeta-lmdb/dist/model/user'),
+    apiKeyModel = require('piecemeta-lmdb/dist/model/api-key'),
+    accessTokenModel = require('piecemeta-lmdb/dist/model/access-token');
 
 module.exports.post = function (req, res, next) {
     return Promise.coroutine(function* () {
@@ -15,7 +15,7 @@ module.exports.post = function (req, res, next) {
         // API key and secret
 
         if (req.params.key && req.params.secret) {
-            cred.api_key = yield search.index('ApiKey').query({
+            cred.api_key = yield lmdb.client.meta.query('ApiKey', {
                 key: req.params.key,
                 secret: req.params.secret
             });
@@ -24,7 +24,7 @@ module.exports.post = function (req, res, next) {
         // Email & password
 
         if (req.params.email) {
-            let user = yield search.index('User').query({email: req.params.email}),
+            let user = yield lmdb.client.meta.query('User', {email: req.params.email}),
                 valid = userModel.isValidPassword(req.params.password, user);
             if (valid) {
                 cred.user = user;
@@ -35,7 +35,7 @@ module.exports.post = function (req, res, next) {
 
         if (req.params.single_access_token) {
             // TODO: confirm user
-            cred.user = yield search.index('User').query({
+            cred.user = yield lmdb.client.meta.query('User', {
                 single_access_token: req.params.single_access_token,
                 confirmed: false
             });
@@ -44,7 +44,7 @@ module.exports.post = function (req, res, next) {
         // We have a user but no key yet
 
         if (!cred.api_key && cred.user) {
-            let key = yield search.index('ApiKey').query({user_uuid: cred.user.uuid});
+            let key = yield lmdb.client.meta.query('ApiKey', {user_uuid: cred.user.uuid});
             if (!key) {
                 let fakeReq = {user: cred.user, body: apiKeyModel.generateApiCredentials({})};
                 cred.api_key = yield lmdbResource.performCrud(fakeReq, {resource: 'ApiKey', action: 'post'});
@@ -61,7 +61,7 @@ module.exports.post = function (req, res, next) {
 
         // Get the access token(s) for the current key and grab the most recent
 
-        let tokens = yield search.index('AccessToken').query({api_key: cred.api_key.key});
+        let tokens = yield lmdb.client.meta.query('AccessToken', {api_key: cred.api_key.key});
         tokens.sort((a, b) => {
             return b.issued - a.issued;
         });

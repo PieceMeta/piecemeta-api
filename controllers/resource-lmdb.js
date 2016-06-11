@@ -2,9 +2,7 @@
 
 var assert = require('assert-plus'),
     Promise = require('bluebird'),
-    lmdbSys = require('piecemeta-lmdb/lib/sys'),
-    lmdbMeta = require('piecemeta-lmdb/lib/meta'),
-    lmdbHandler = require('piecemeta-lmdb/lib/response');
+    lmdb = require('../lib/lmdb');
 
 module.exports = function (config) {
     assert.object(config, 'Resource config');
@@ -24,7 +22,7 @@ module.exports.performCrud = function (req, config) {
     assert.object(req, 'Request');
     assert.object(config, 'Resource config');
 
-    var query = {}, result, dbi;
+    var query = {}, result;
 
     if (config.action === 'find') {
         query = require('../lib/util/query-mapping')(query, req, config);
@@ -35,39 +33,35 @@ module.exports.performCrud = function (req, config) {
 
     return Promise.coroutine(function *() {
 
-        dbi = yield lmdbSys.openDb(config.resource);
-
         switch (config.action) {
             case 'find':
-                result = yield lmdbMeta.queryMetaData(dbi, config.resource, query);
+                result = yield lmdb.client.meta.query(config.resource, query);
                 break;
             case 'get':
-                result = yield lmdbMeta.getMetaData(dbi, req.params.uuid);
+                result = yield lmdb.client.meta.fetch(config.resource, req.params.uuid);
                 break;
             case 'post':
-                result = yield lmdbMeta.createMetaData(dbi, config.resource, req.body);
+                result = yield lmdb.client.meta.create(config.resource, req.body);
                 break;
             case 'put':
-                result = yield lmdbMeta.updateMetaData(dbi, config.resource, req.params.uuid, req.body);
+                result = yield lmdb.client.meta.update(config.resource, req.params.uuid, req.body);
                 break;
             case 'del':
-                result = yield lmdbMeta.delMetaData(dbi, req.params.uuid);
+                result = yield lmdb.client.meta.del(config.resource, req.params.uuid);
         }
-
-        yield lmdbSys.closeDb(dbi);
 
         return result;
     })()
     .catch(function (err) {
-        if (dbi) {
-            lmdbSys.closeDb(dbi);
-        }
         throw err;
     });
 };
 
 module.exports.sendResOrNotFound = function (res, result, next) {
     if (result) {
+        if (!(result instanceof Object) && result.hasOwnProperty('toObject')) {
+            result = result.toObject();
+        }
         res.send(200, result);
     } else {
         var restify = require('restify');
@@ -77,6 +71,6 @@ module.exports.sendResOrNotFound = function (res, result, next) {
 };
 
 module.exports.errorResponse = function (res, err, next) {
-    res.send(lmdbHandler.handleError(err));
+    res.send(500, err);
     next();
 };

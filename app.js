@@ -3,15 +3,12 @@
 var Promise = require('bluebird'),
     restify = require('restify'),
     preflight = require('se7ensky-restify-preflight'),
-    config = require('./lib/config'),
-    search = require('piecemeta-lmdb/lib/search'),
-    lmdbSys = require('piecemeta-lmdb/lib/sys'),
-    lmdbMeta = require('piecemeta-lmdb/lib/meta'),
-    lmdbStream = require('piecemeta-lmdb/lib/stream');
+    lmdb = require('./lib/lmdb'),
+    path = require('path'),
+    config = require('./lib/config');
 
 Promise.coroutine(function* () {
-    var lmdbEnv, server, routes,
-        version = require("./package.json").version;
+    var server, routes, version = require("./package.json").version;
 
     yield config.load();
 
@@ -19,21 +16,7 @@ Promise.coroutine(function* () {
         throw new Error('Server has not been configured yet. Please run bin/setup.');
     }
 
-    yield search.setBasepath('./index');
-
-    lmdbEnv = yield lmdbSys.openEnv(
-        config.get.lmdb.path,
-        config.get.lmdb.mapsize * 1024 * 1024,
-        config.get.lmdb.maxdbs
-    );
-    lmdbStream.setEnv(lmdbEnv);
-    lmdbMeta.setEnv(lmdbEnv);
-    lmdbMeta.registerSchema('Package', require('piecemeta-lmdb/model/package'));
-    lmdbMeta.registerSchema('Channel', require('piecemeta-lmdb/model/channel'));
-    lmdbMeta.registerSchema('Stream', require('piecemeta-lmdb/model/stream'));
-    lmdbMeta.registerSchema('AccessToken', require('piecemeta-lmdb/model/access-token'));
-    lmdbMeta.registerSchema('ApiKey', require('piecemeta-lmdb/model/api-key'));
-    lmdbMeta.registerSchema('User', require('piecemeta-lmdb/model/user'));
+    yield lmdb.open(path.resolve('./data/lmdb'), path.resolve('./data/index'), 256 * 1024 * 1024, 256);
 
     server = restify.createServer({
         name: `PieceMeta API Server v${version}`,

@@ -10,6 +10,7 @@
     "assert-plus": "^0.1.5",
     "babyparse": "~0.4.3",
     "bluebird": "^3.0.5",
+    "csv-parse": "^1.1.1",
     "exectimer": "^1.0.2",
     "js2xmlparser": "^1.0.0",
     "msgpack": "^1.0.2",
@@ -22,7 +23,8 @@
     "sanitizer": "^0.1.2",
     "se7ensky-restify-preflight": "^0.1.7",
     "xml2js": "^0.4.13",
-    "xmlbuilder": "^4.0.0"
+    "xmlbuilder": "^4.0.0",
+    "yargs": "^4.7.1"
   },
   "stability": "unstable"
 }

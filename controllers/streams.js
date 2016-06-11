@@ -1,11 +1,8 @@
 'use strict';
 
 var Promise = require('bluebird'),
-    lmdbResource = require('./resource-lmdb'),
-    lmdbSys = require('piecemeta-lmdb/lib/sys'),
-    lmdbStream = require('piecemeta-lmdb/lib/stream'),
-    lmdbMeta = require('piecemeta-lmdb/lib/meta'),
-    search = require('piecemeta-lmdb/lib/search');
+    lmdb = require('../lib/lmdb'),
+    lmdbResource = require('./resource-lmdb');
 
 Promise.longStackTraces();
 
@@ -60,17 +57,14 @@ module.exports = function (config) {
         get: function (req, res, next) {
             return Promise.coroutine(function* () {
                 var meta, channels,
-                    streams = yield search.index('Stream').query({uuid: [req.params.uuid]});
+                    streams = yield lmdb.client.meta.query('Stream', {uuid: [req.params.uuid]});
 
                 if (streams && streams.hits.length > 0) {
-                    channels = yield search.index('Channel')
-                        .query({uuid: [streams.hits[0].document.channel_uuid]});
+                    channels = yield lmdb.client.meta.query('Channel', {uuid: [streams.hits[0].document.channel_uuid]});
                 }
 
                 if (channels && channels.hits.length > 0) {
-                    let metaDbi = yield lmdbSys.openDb('Stream');
-                    meta = yield lmdbMeta.getMetaData(metaDbi, req.params.uuid);
-                    yield lmdbSys.closeDb(metaDbi);
+                    meta = yield lmdb.client.meta.fetch('Stream', req.params.uuid);
                 }
 
                 if (typeof meta === 'object') {
@@ -80,11 +74,8 @@ module.exports = function (config) {
                         skip: parseInt(req.query.skip)
                     };
 
-                    let pkgDbi = yield lmdbSys.openDb(channels.hits[0].document.package_uuid),
-                        data = yield lmdbStream.getStreamData(pkgDbi, req.params.uuid, meta.config),
+                    let data = yield lmdb.client.stream.getStreamData(req.params.uuid, meta.config),
                         resultLength = data.length;
-
-                    yield lmdbSys.closeDb(pkgDbi);
 
                     meta.frames = [];
 
@@ -112,12 +103,10 @@ module.exports = function (config) {
             delete req.body.frames;
 
             return Promise.coroutine(function* () {
-                var dbi, data = yield lmdbResource.performCrud(req, config),
+                var data = yield lmdbResource.performCrud(req, config),
                     frameCount = frames.length,
                     valCount = data.labels.length,
                     frameSize, buffer, valueLength, writeFunc;
-
-                dbi = yield lmdbSys.openDb(data.package_uuid);
 
                 switch (data.format) {
                     case 'double':
@@ -152,8 +141,7 @@ module.exports = function (config) {
                     }
                 }
 
-                yield lmdbStream.putStreamData(
-                    dbi,
+                yield lmdb.client.stream.putStreamData(
                     data.uuid,
                     buffer,
                     {
@@ -162,8 +150,6 @@ module.exports = function (config) {
                         valueCount: valCount
                     }
                 );
-
-                yield lmdbSys.closeDb(dbi);
 
                 return lmdbResource.sendResOrNotFound(res, data, next);
 
