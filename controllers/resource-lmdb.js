@@ -58,9 +58,19 @@ module.exports.performCrud = function (req, config) {
 };
 
 module.exports.sendResOrNotFound = function (res, result, next) {
+    let getPlainObject = function (obj) {
+        if (obj.toObject) {
+            return obj.toObject();
+        }
+        return obj;
+    };
     if (result) {
-        if (!(result instanceof Object) && result.hasOwnProperty('toObject')) {
-            result = result.toObject();
+        if (Array.isArray(result)) {
+            for (let i in result) {
+                result[i] = getPlainObject(result[i]);
+            }
+        } else {
+            result = getPlainObject(result);
         }
         res.send(200, result);
     } else {
