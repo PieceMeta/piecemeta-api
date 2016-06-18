@@ -4,8 +4,6 @@ var Promise = require('bluebird'),
     lmdb = require('../lib/lmdb'),
     lmdbResource = require('./resource-lmdb');
 
-Promise.longStackTraces();
-
 module.exports = function (config) {
     return {
         find: function (req, res, next) {
