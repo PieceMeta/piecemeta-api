@@ -7,7 +7,7 @@ var assert = require('assert-plus'),
 module.exports = function (config) {
     assert.object(config, 'Resource config');
 
-    return (req, res, next) => {
+    return function lmdbResource(req, res, next) {
         return Promise.coroutine(function *() {
             let result = yield module.exports.performCrud(req, config);
             return module.exports.sendResOrNotFound(res, result, next);
@@ -82,5 +82,5 @@ module.exports.sendResOrNotFound = function (res, result, next) {
 
 module.exports.errorResponse = function (res, err, next) {
     res.send(500, err);
-    next();
+    next(err);
 };

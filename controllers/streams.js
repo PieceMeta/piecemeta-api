@@ -56,15 +56,10 @@ module.exports = function (config) {
         },
         get: function (req, res, next) {
             return Promise.coroutine(function* () {
-                var meta, channels,
-                    streams = yield lmdb.client.meta.query('Stream', {uuid: [req.params.uuid]});
+                var meta = yield lmdb.client.meta.fetch('Stream', req.params.uuid);
 
-                if (streams && streams.hits.length > 0) {
-                    channels = yield lmdb.client.meta.query('Channel', {uuid: [streams.hits[0].document.channel_uuid]});
-                }
-
-                if (channels && channels.hits.length > 0) {
-                    meta = yield lmdb.client.meta.fetch('Stream', req.params.uuid);
+                if (meta && meta.toObject) {
+                    meta = meta.toObject();
                 }
 
                 if (typeof meta === 'object') {
@@ -74,19 +69,20 @@ module.exports = function (config) {
                         skip: parseInt(req.query.skip)
                     };
 
-                    let data = yield lmdb.client.stream.getStreamData(req.params.uuid, meta.config),
+                    let data = yield lmdb.client.stream.getStreamData(meta, meta.config),
+                        valCount = meta.labels.length,
+                        frameSize = valCount * 4,
                         resultLength = data.length;
 
                     meta.frames = [];
 
-                    for (let i = 0; i < resultLength; i += 1) {
-                        var valCount = meta.labels.length,
-                            val = [];
+                    let frames = resultLength / valCount / 4;
 
+                    for (let i = 0; i < frames; i += 1) {
+                        let val = [];
                         for (let v = 0; v < valCount; v += 1) {
-                            val.push(data[i].readFloatLE(v * 4));
+                            val.push(data.readFloatLE(i * frameSize + v * 4));
                         }
-
                         meta.frames.push(val);
                     }
                 }
