@@ -7,8 +7,6 @@ var fs = require('fs'),
     PiecemetaLmdb = require('piecemeta-lmdb').default,
     argv = require('yargs').argv, client;
 
-if (!argv.file) argv.file = '/Volumes/XTND/DevProjects/nanobrain-server/import/test.csv';
-
 var readCsv = Promise.promisify(function (filename, cb) {
     let parse = require('csv-parse'),
         output = [],
@@ -66,23 +64,27 @@ Promise.coroutine(function* () {
         };
 
     let pkg = yield client.meta.create('Package', {
-        title: 'NanoBrains',
-        description: 'NanoBrain Data imported from CSV'
+        title: argv.title,
+        description: argv.description,
+        user_uuid: argv.user
     });
     pkg = pkg.toObject();
 
     let channel = yield client.meta.create('Channel', {
-        title: path.basename(argv.file),
-        description: 'NanoBrain Data imported from CSV',
-        package_uuid: pkg.uuid
+        title: argv.title,
+        description: argv.description,
+        package_uuid: pkg.uuid,
+        user_uuid: argv.user
     });
     channel = channel.toObject();
 
     let stream = yield client.meta.create('Stream', {
-        title: 'Recording',
+        title: path.basename(argv.file),
+        user_uuid: argv.user,
         package_uuid: pkg.uuid,
         channel_uuid: channel.uuid,
         labels: labels,
+        timeAtIndex: 0,
         format: 'float',
         fps: 0,
         frameCount: data.length
@@ -92,6 +94,14 @@ Promise.coroutine(function* () {
     for (let i = 0; i < frameCount; i += 1) {
         for (let v = 0; v < valCount; v += 1) {
             buffer.writeFloatLE(data[i][v], frameSize * i + v * valueLength);
+        }
+    }
+
+    for (let i = 0; i < frameCount; i += 1) {
+        let frame = [];
+        for (let v = 0; v < valCount; v += 1) {
+            let val = buffer.readFloatLE(frameSize * i + v * valueLength);
+            frame.push(val);
         }
     }
 
