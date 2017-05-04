@@ -1,41 +1,41 @@
 {
   "name": "piecemeta-api",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "private": true,
   "scripts": {
     "start": "node ./app"
   },
   "dependencies": {
-    "assert-plus": "^0.1.5",
-    "async": "^1.4.2",
+    "assert-plus": "^1.0.0",
+    "async": "^2.4.0",
     "babyparse": "~0.4.3",
-    "js2xmlparser": "^1.0.0",
+    "js2xmlparser": "^3.0.0",
     "memcached": "^2.2.0",
     "mongoose": "^4.1.11",
-    "mongoose-unique-validator": "^0.5.1",
+    "mongoose-unique-validator": "^1.0.5",
     "msgpack": "^1.0.2",
-    "nodemailer": "^1.8.0",
+    "nodemailer": "^4.0.1",
     "piecemeta-apiclient": "~1.0.3",
-    "pmx": "^0.5.5",
-    "prompt": "^0.2.14",
-    "request": "^2.65.0",
-    "restify": "^4.0.3",
+    "pmx": "^1.2.0",
+    "prompt": "^1.0.0",
+    "request": "^2.81.0",
+    "restify": "^4.3.0",
     "sanitizer": "^0.1.2",
     "se7ensky-restify-preflight": "^0.1.7",
     "secure-random": "~1.1.1",
     "sha1": "^1.1.1",
-    "validator": "^4.1.0",
+    "validator": "^7.0.0",
     "worker-farm": "^1.3.1",
     "xml2js": "^0.4.13",
-    "xmlbuilder": "^3.1.0"
+    "xmlbuilder": "^8.2.2"
   },
   "devDependencies": {
-    "chai": "~3.3.0",
+    "chai": "~3.5.0",
     "lorem-hipsum": "^0.1.7",
-    "mocha": "^2.3.3",
-    "mocha-mongoose": "~1.1.0",
-    "mongodb": "~2.0.46",
-    "sinon": "^1.17.1"
+    "mocha": "^3.3.0",
+    "mocha-mongoose": "~1.2.0",
+    "mongodb": "~2.2.26",
+    "sinon": "^2.2.0"
   },
   "stability": "unstable"
 }
