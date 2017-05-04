@@ -1,30 +1,30 @@
 {
   "name": "piecemeta-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "start": "node ./app"
   },
   "engines": "~4.2.0",
   "dependencies": {
-    "assert-plus": "^0.1.5",
+    "assert-plus": "^1.0.0",
     "babyparse": "~0.4.3",
     "bluebird": "^3.0.5",
     "csv-parse": "^1.1.1",
-    "exectimer": "^1.0.2",
-    "js2xmlparser": "^1.0.0",
+    "exectimer": "^2.0.3",
+    "js2xmlparser": "^3.0.0",
     "msgpack": "^1.0.2",
-    "nodemailer": "^1.8.0",
+    "nodemailer": "^4.0.1",
     "piecemeta-apiclient": "~1.0.3",
     "piecemeta-lmdb": "https://github.com/PieceMeta/node-piecemeta-lmdb.git",
-    "prompt": "^0.2.14",
-    "request": "^2.51.0",
-    "restify": "~4.0.3",
+    "prompt": "^1.0.0",
+    "request": "^2.81.0",
+    "restify": "~4.3.0",
     "sanitizer": "^0.1.2",
     "se7ensky-restify-preflight": "^0.1.7",
     "xml2js": "^0.4.13",
-    "xmlbuilder": "^4.0.0",
-    "yargs": "^4.7.1"
+    "xmlbuilder": "^8.2.2",
+    "yargs": "^8.0.1"
   },
   "stability": "unstable"
 }
