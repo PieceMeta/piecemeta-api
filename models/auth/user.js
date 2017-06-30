@@ -114,7 +114,7 @@
 
     User.statics.encryptPassword = function (password, salt, callback) {
         var crypto = require('crypto');
-        crypto.pbkdf2(password, salt, 80000, 256, function (err, hash_bytes) {
+        crypto.pbkdf2(password, salt, 80000, 256, 'sha256', function (err, hash_bytes) {
             callback(err, hash_bytes ? hash_bytes.toString('hex') : null);
         });
     };
